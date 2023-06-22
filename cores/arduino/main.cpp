@@ -127,7 +127,7 @@ extern "C" __attribute__((weak)) int _write (int fhdl, const void *buf, size_t c
 #endif
 
 extern "C" {
-   void hal_entry(void) {
+   __attribute__((weak)) void hal_entry(void) {
       arduino_main();
    }
 }

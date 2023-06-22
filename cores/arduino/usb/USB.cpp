@@ -248,12 +248,15 @@ void __USBStart() __attribute__((weak));
 #define BSP_PRV_PRCR_PRC1_UNLOCK ((BSP_PRV_PRCR_KEY) | 0x2U)
 #define BSP_PRV_PRCR_LOCK	 ((BSP_PRV_PRCR_KEY) | 0x0U)
 
-#if 0 //defined(AZURE_RTOS_THREADX)
-static void tud_task_forever(ULONG thread_input) {
-    while (1) {
-        tud_task();
-        delay(100);
-    }
+#if (CFG_TUSB_RHPORT0_MODE & OPT_MODE_HOST) || (CFG_TUSB_RHPORT1_MODE & OPT_MODE_HOST)
+__attribute__((weak)) void tuh_task_weak() {
+    tuh_task();
+}
+#endif
+
+#if (CFG_TUSB_RHPORT0_MODE & OPT_MODE_DEVICE) || (CFG_TUSB_RHPORT1_MODE & OPT_MODE_DEVICE)
+__attribute__((weak)) void tud_task_weak() {
+    tud_task();
 }
 #endif
 
@@ -264,14 +267,13 @@ void _usbfs_interrupt_handler(void)
 
 #if CFG_TUSB_RHPORT0_MODE & OPT_MODE_HOST
   tuh_int_handler(0);
-  tuh_task();
+  tuh_task_weak();
 #endif
 
 #if CFG_TUSB_RHPORT0_MODE & OPT_MODE_DEVICE
   tud_int_handler(0);
-  tud_task();
+  tud_task_weak();
 #endif
-  
 }
 
 void _usbhs_interrupt_handler(void)
@@ -281,18 +283,21 @@ void _usbhs_interrupt_handler(void)
 
 #if CFG_TUSB_RHPORT1_MODE & OPT_MODE_HOST
   tuh_int_handler(1);
+  tuh_task_weak();
 #endif
 
 #if CFG_TUSB_RHPORT1_MODE & OPT_MODE_DEVICE
   tud_int_handler(1);
+  tud_task_weak();
 #endif
-  tud_task();
 }
 
 extern "C" {
     void tud_set_irq_usbfs(IRQn_Type q);
     void tud_set_irq_usbhs(IRQn_Type q);
 }
+
+__attribute__((weak)) void tusb_task_forever_rtos() {}
 
 __attribute__((weak)) void configure_usb_mux() {}
 
@@ -305,6 +310,8 @@ void __USBStart() {
     }
 
     configure_usb_mux();
+
+    tusb_task_forever_rtos();
 
     /* 
      * ENABLE USB
@@ -352,17 +359,6 @@ void __USBStart() {
 
     /* init device port*/
     tud_init(BOARD_TUD_RHPORT);
-
-#if 0 //defined(AZURE_RTOS_THREADX)
-    static TX_BYTE_POOL byte_pool_0;
-    static TX_THREAD thread;
-    static uint8_t memory_area[1024];
-    static char* pointer;
-    tx_byte_pool_create(&byte_pool_0, "byte pool 0", memory_area, sizeof(memory_area));
-    tx_byte_allocate(&byte_pool_0, (void**)&pointer, 512, TX_NO_WAIT);
-
-    tx_thread_create(&thread, "tud_task", tud_task_forever, 1, pointer, 1024, 6, 6, 4, TX_AUTO_START);
-#endif
 }
 
 
