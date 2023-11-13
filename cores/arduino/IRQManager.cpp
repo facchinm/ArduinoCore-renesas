@@ -566,31 +566,31 @@ bool IRQManager::addPeripheral(Peripheral_t p, void *cfg) {
             /* TX interrupt */
             mcfg->txi_irq = (IRQn_Type)last_interrupt_index;
             *(irq_ptr + last_interrupt_index) = (uint32_t)iic_master_txi_isr;
-            set_iic_tx_link_event(last_interrupt_index, hw_channel);
             R_BSP_IrqCfg((IRQn_Type)last_interrupt_index, I2C_MASTER_PRIORITY, mcfg);
             last_interrupt_index++;
 
             /* RX interrupt */
             mcfg->rxi_irq = (IRQn_Type)last_interrupt_index;
             *(irq_ptr + last_interrupt_index) = (uint32_t)iic_master_rxi_isr;
-            set_iic_rx_link_event(last_interrupt_index, hw_channel);
             R_BSP_IrqCfg((IRQn_Type)last_interrupt_index, I2C_MASTER_PRIORITY, mcfg);
             last_interrupt_index++;
 
             /* TX ERROR interrupt */
             mcfg->tei_irq = (IRQn_Type)last_interrupt_index;
             *(irq_ptr + last_interrupt_index) = (uint32_t)iic_master_tei_isr;
-            set_iic_tei_link_event(last_interrupt_index, hw_channel);
             R_BSP_IrqCfg((IRQn_Type)last_interrupt_index, I2C_MASTER_PRIORITY, mcfg);
             last_interrupt_index++;
 
             /* RX ERROR interrupt */
             mcfg->eri_irq = (IRQn_Type)last_interrupt_index;
             *(irq_ptr + last_interrupt_index) = (uint32_t)iic_master_eri_isr;
-            set_iic_eri_link_event(last_interrupt_index, hw_channel);
             R_BSP_IrqCfg((IRQn_Type)last_interrupt_index, I2C_MASTER_PRIORITY, mcfg);
             last_interrupt_index++;
         }
+        set_iic_tx_link_event(mcfg->txi_irq, hw_channel);
+        set_iic_rx_link_event(mcfg->rxi_irq, hw_channel);
+        set_iic_tei_link_event(mcfg->tei_irq, hw_channel);
+        set_iic_eri_link_event(mcfg->eri_irq, hw_channel);
         R_BSP_IrqEnable (mcfg->txi_irq);
         R_BSP_IrqEnable (mcfg->rxi_irq);
         R_BSP_IrqEnable (mcfg->tei_irq);
@@ -648,27 +648,27 @@ bool IRQManager::addPeripheral(Peripheral_t p, void *cfg) {
             /* TX interrupt */
             p_cfg->txi_irq = (IRQn_Type)last_interrupt_index;
             *(irq_ptr + last_interrupt_index) = (uint32_t)iic_slave_txi_isr;
-            set_iic_tx_link_event(last_interrupt_index, p_cfg->channel);
             last_interrupt_index++;
 
             /* RX interrupt */
             p_cfg->rxi_irq = (IRQn_Type)last_interrupt_index;
             *(irq_ptr + last_interrupt_index) = (uint32_t)iic_slave_rxi_isr;
-            set_iic_rx_link_event(last_interrupt_index, p_cfg->channel);
             last_interrupt_index++;
 
             /* TEI interrupt */
             p_cfg->tei_irq = (IRQn_Type)last_interrupt_index;
             *(irq_ptr + last_interrupt_index) = (uint32_t)iic_slave_tei_isr;
-            set_iic_tei_link_event(last_interrupt_index, p_cfg->channel);
             last_interrupt_index++;
 
             /* ERI interrupt */
             p_cfg->eri_irq = (IRQn_Type)last_interrupt_index;
             *(irq_ptr + last_interrupt_index) = (uint32_t)iic_slave_eri_isr;
-            set_iic_eri_link_event(last_interrupt_index, p_cfg->channel);
             last_interrupt_index++;
         }
+        set_iic_tx_link_event(p_cfg->txi_irq, p_cfg->channel);
+        set_iic_rx_link_event(p_cfg->rxi_irq, p_cfg->channel);
+        set_iic_tei_link_event(p_cfg->tei_irq, p_cfg->channel);
+        set_iic_eri_link_event(p_cfg->eri_irq, p_cfg->channel);
         R_BSP_IrqEnable (p_cfg->txi_irq);
         R_BSP_IrqEnable (p_cfg->rxi_irq);
         R_BSP_IrqEnable (p_cfg->tei_irq);

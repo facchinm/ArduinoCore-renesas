@@ -434,12 +434,21 @@ void TwoWire::end(void) {
   if(init_ok) {
     if(is_master) {
       if(m_close != nullptr) {
-        m_close(&m_i2c_ctrl);  
+        m_close(&m_i2c_ctrl);
+        R_BSP_IrqDisable(m_i2c_cfg.txi_irq);
+        R_BSP_IrqDisable(m_i2c_cfg.rxi_irq);
+        R_BSP_IrqDisable(m_i2c_cfg.tei_irq);
+        R_BSP_IrqDisable(m_i2c_cfg.eri_irq);
+
       }
     }
     else {
       if(s_close != nullptr) {
         s_close(&s_i2c_ctrl);
+        R_BSP_IrqDisable(s_i2c_cfg.txi_irq);
+        R_BSP_IrqDisable(s_i2c_cfg.rxi_irq);
+        R_BSP_IrqDisable(s_i2c_cfg.tei_irq);
+        R_BSP_IrqDisable(s_i2c_cfg.eri_irq);
       }
     }
   }
