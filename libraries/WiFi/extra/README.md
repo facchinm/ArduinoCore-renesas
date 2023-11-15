@@ -1,7 +1,7 @@
 # Build scripr for esp-hosted (Portenta C33)
 
 ```
-git clone git@github.com:espressif/esp-hosted.git --recursive
+git clone https://github.com/espressif/esp-hosted.git --recursive
 cd esp-hosted/
 patch -p1 < ../0001-Defaults-for-C33-BLE.patch
 cd esp_hosted_fg/esp/esp_driver/
