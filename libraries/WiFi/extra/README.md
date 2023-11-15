@@ -1,4 +1,4 @@
-# Build scripr for esp-hosted (Portenta C33)
+# Build script for esp-hosted (Portenta C33)
 
 ```
 git clone https://github.com/espressif/esp-hosted.git --recursive
