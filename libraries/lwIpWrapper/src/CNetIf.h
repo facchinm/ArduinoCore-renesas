@@ -73,7 +73,9 @@ typedef enum {
 enum wl_enc_type {
     ENC_TYPE_WEP,
     ENC_TYPE_WPA,
+    ENC_TYPE_TKIP = ENC_TYPE_WPA,
     ENC_TYPE_WPA2,
+    ENC_TYPE_CCMP = ENC_TYPE_WPA2,
     ENC_TYPE_WPA2_ENTERPRISE,
     ENC_TYPE_WPA3,
     ENC_TYPE_NONE,
@@ -146,7 +148,7 @@ protected:
     unsigned long dhcp_timeout;
     DhcpSt_t dhcp_st;
     bool dhcp_started;
-    bool dhcp_acquired;
+    volatile bool dhcp_acquired;
     uint8_t _dhcp_lease_state;
     void dhcp_task();
     void dhcp_reset();

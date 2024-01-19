@@ -1,5 +1,8 @@
+#pragma once
+
 #include "Arduino.h"
 #include "FspTimer.h"
+#include "gallery.h"
 
 #define NUM_LEDS    96
 
@@ -247,7 +250,7 @@ public:
 
 #ifdef MATRIX_WITH_ARDUINOGRAPHICS
     virtual void set(int x, int y, uint8_t r, uint8_t g, uint8_t b) {
-      if (y >= canvasHeight || x >= canvasWidth) {
+      if (y >= canvasHeight || x >= canvasWidth || y < 0 || x < 0) {
         return;
       }
       // the r parameter is (mis)used to set the character to draw with
