@@ -682,6 +682,10 @@ exit:
 int CWifiStation::scanForAp() {
     access_points.clear();
 
+    if (CEspControl::getInstance().initSpiDriver() != 0) {
+        return WL_NO_SSID_AVAIL;
+    }
+
     CLwipIf::getInstance().sync_timer();
 
     int res = CEspControl::getInstance().getAccessPointScanList(access_points);
@@ -844,8 +848,10 @@ uint8_t CWifiStation::getEncryptionType() {
     return Encr2wl_enc(access_point_cfg.encryption_mode);
 }
 
-// int CWifiStation::getMacAddress(uint8_t* mac) {
-// }
+int CWifiStation::getMacAddress(uint8_t* mac) {
+    memcpy(mac, getNi()->hwaddr, getNi()->hwaddr_len);
+    return getNi()->hwaddr_len;
+}
 
 uint8_t CWifiStation::getChannel() {
     return (uint8_t)access_point_cfg.channel;
@@ -1136,6 +1142,11 @@ int CWifiSoftAp::resetLowPowerMode() {
     CLwipIf::getInstance().enable_timer();
 
     return res;
+}
+
+int CWifiSoftAp::getMacAddress(uint8_t* mac) {
+    memcpy(mac, getNi()->hwaddr, getNi()->hwaddr_len);
+    return getNi()->hwaddr_len;
 }
 
 /* ##########################################################################

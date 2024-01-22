@@ -46,8 +46,8 @@
 typedef enum {
     WL_NO_SHIELD = 255,
     WL_NO_MODULE = WL_NO_SHIELD,
+    WL_NO_SSID_AVAIL = -1,
     WL_IDLE_STATUS = 0,
-    WL_NO_SSID_AVAIL,
     WL_SCAN_COMPLETED,
     WL_CONNECTED,
     WL_CONNECT_FAILED,
@@ -284,9 +284,7 @@ public:
 
     virtual void task() override;
 
-    virtual int getMacAddress(uint8_t* mac) override {
-        // FIXME not implemented
-    }
+    virtual int getMacAddress(uint8_t* mac);
 
     virtual int setMacAddress(uint8_t* mac) override {
         UNUSED(mac); // FIXME not implemented
@@ -304,6 +302,10 @@ public:
     uint8_t getEncrType(uint8_t i);
     uint8_t* getBSSID(uint8_t i, uint8_t* bssid);
     uint8_t getChannel(uint8_t i);
+
+    std::vector<AccessPoint_t> getAccessPointsList() {
+        return access_points;
+    }
 
     int setLowPowerMode();
     int resetLowPowerMode();
@@ -344,9 +346,7 @@ public:
     int startSoftAp(const char* ssid, const char* passphrase=nullptr, uint8_t channel=0);
     int stopSoftAp();
 
-    virtual int getMacAddress(uint8_t* mac) override {
-        // FIXME not implemented
-    }
+    virtual int getMacAddress(uint8_t* mac);
 
     virtual int setMacAddress(uint8_t* mac) override {
         UNUSED(mac); // FIXME not implemented

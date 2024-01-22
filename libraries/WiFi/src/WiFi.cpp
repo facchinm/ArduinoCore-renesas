@@ -142,8 +142,16 @@ void CWifi::end(void) {
 /* -------------------------------------------------------------------------- */
 uint8_t* CWifi::macAddress(uint8_t* mac) {
 /* -------------------------------------------------------------------------- */
-    if(WiFiStation.getMacAddress(mac) == WL_MAC_ADDR_LENGTH) {
-        return mac;
+    WifiMode_t m;
+    CEspControl::getInstance().getWifiMode(m);
+    if (m == WIFI_MODE_STA) {
+        if (WiFiStation.getMacAddress(mac) == WL_MAC_ADDR_LENGTH) {
+            return mac;
+        }
+    } else {
+        if (WiFiSoftAP.getMacAddress(mac) == WL_MAC_ADDR_LENGTH) {
+            return mac;
+        }
     }
     memset(mac,0x00,6);
     return mac;
@@ -152,7 +160,12 @@ uint8_t* CWifi::macAddress(uint8_t* mac) {
 /* -------------------------------------------------------------------------- */
 int8_t CWifi::scanNetworks() {
 /* -------------------------------------------------------------------------- */
-    return WiFiStation.scanForAp();;
+    int res = WiFiStation.scanForAp();
+    if (res == WL_NO_SSID_AVAIL) {
+        return 0;
+    } else {
+        return WiFiStation.getAccessPointsList().size();
+    }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -239,10 +252,9 @@ uint8_t CWifi::channel(uint8_t networkItem) {
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
-uint8_t CWifi::status() { // FIXME
+uint8_t CWifi::status() {
 /* -------------------------------------------------------------------------- */
-    // return CLwipIf::getInstance().getWifiStatus();
-    return WiFiStation.status();
+    return CEspControl::getInstance().initSpiDriver() == 0;
 }
 
 /* -------------------------------------------------------------------------- */

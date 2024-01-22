@@ -270,8 +270,11 @@ int esp_host_spi_init(void) {
    #endif
       return ESP_HOSTED_SPI_DRIVER_SPI_FAIL_OPEN;
    }
-   
+
+   R_IOPORT_PinWrite(NULL, ESP_RESET, BSP_IO_LEVEL_LOW);
+   delay(100);
    R_IOPORT_PinWrite(NULL, ESP_RESET, BSP_IO_LEVEL_HIGH);
+   delay(1000);
    spi_driver_initialized = true;
    return ESP_HOSTED_SPI_DRIVER_OK; 
 }
@@ -440,7 +443,7 @@ int esp_host_send_and_receive(void) {
       }
       R_BSP_SoftwareDelay(100, BSP_DELAY_UNITS_MICROSECONDS);
       time_num++;
-   } while(time_num < 5000);
+   } while(time_num < 500);
 
    if(esp_ready) {
       /* Put CS LOW */

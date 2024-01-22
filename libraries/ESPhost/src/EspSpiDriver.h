@@ -22,6 +22,7 @@
 #define ESP_HOSTED_SPI_DRIVER_H
 
 //#define ESP_HOST_DEBUG_ENABLED
+//#define ESP_HOST_DEBUG_ENABLED_AVOID
 
 #include "Arduino.h"
 #include "IRQManager.h"
