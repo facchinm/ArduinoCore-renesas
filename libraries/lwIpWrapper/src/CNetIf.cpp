@@ -86,7 +86,7 @@ CLwipIf::CLwipIf() {
     lwip_init();
 
 #ifdef LWIP_USE_TIMER
-    uint8_t type = 8;
+    uint8_t type = AGT_TIMER;
     int8_t ch = FspTimer::get_available_timer(type);
 
     if (ch < 0) {
@@ -167,11 +167,8 @@ struct dns_callback {
 };
 
 static void _getHostByNameCBK(const char *name, const ip_addr_t *ipaddr, void *callback_arg) {
-    dns_callback* cbk = (dns_callback*)callback_arg;
-
-    cbk->cbk(toArduinoIP(ipaddr));
-
-    delete cbk;
+    IPAddress* arg = (IPAddress*)callback_arg;
+    *arg = toArduinoIP(ipaddr);
 }
 
 // add a dns server, priority set to 0 means it is the first being queryed, -1 means the last
@@ -219,21 +216,21 @@ int CLwipIf::getHostByName(const char* aHostname, IPAddress& aResult, bool execu
      *   everything
      * - this function shouldn't be called when lwip is run in the same context as the application
      */
-    volatile bool completed = false;
+    ip_addr_t addr;
+    aResult = INADDR_NONE;
 
-    uint8_t res = this->getHostByName(aHostname, [&aResult, &completed](const IPAddress& ip){
-        aResult = ip;
-        completed = true;
-    });
+    err_t err = dns_gethostbyname(aHostname, &addr, _getHostByNameCBK, &aResult);
 
-    while(res == 1 && !completed) { // DNS timeouts seems to be handled by lwip, no need to put one here
+    while(err != ERR_OK && aResult == INADDR_NONE) { // DNS timeouts seems to be handled by lwip, no need to put one here
         delay(1);
         if(execute_task) {
             this->task();
         }
     }
 
-    return res == 1 ? 0 : res;
+    Serial.println(aResult);
+
+    return 0;
 }
 
 // TODO instead of returning int return an enum value
@@ -341,9 +338,9 @@ int CNetIf::begin(const IPAddress &ip, const IPAddress &nm, const IPAddress &gw)
     } else {
         this->dhcpStart();
 
-
         CLwipIf::getInstance().sync_timer();
-        while(!this->isDhcpAcquired()) {
+        auto start = millis();
+        while((!this->isDhcpAcquired()) && (millis() - start < 10000)) {
             CLwipIf::getInstance().task();
         }
         CLwipIf::getInstance().enable_timer();
@@ -351,7 +348,7 @@ int CNetIf::begin(const IPAddress &ip, const IPAddress &nm, const IPAddress &gw)
 
 #endif
 
-    return this->isDhcpAcquired()? 1 : 0;
+    return this->isDhcpAcquired()? WL_CONNECTED : WL_CONNECT_FAILED;
 }
 
 void CNetIf::task() {
@@ -602,7 +599,7 @@ int CWifiStation::begin(const IPAddress &ip, const IPAddress &nm, const IPAddres
 
 int CWifiStation::connectToAP(const char* ssid, const char *passphrase) {
     WifiApCfg_t ap;
-    int rv = ESP_CONTROL_CTRL_ERROR; // FIXME this should be set with an error meaning AP not found
+    int rv = ESP_CONTROL_OK; // FIXME this should be set with an error meaning AP not found
     bool found = false;
     int8_t best_index = -1; // this index is used to find the ap with the best rssi
     int time_num = 0;
@@ -800,11 +797,11 @@ void CWifiStation::task() {
     }
 
     // empty the ESP32 queue
-    while(buffer != nullptr) {
+    if (buffer != nullptr) {
         // FIXME this section is redundant and should be generalized toghether with CEth::consume_callback
         // NETIF_STATS_INCREMENT_RX_INTERRUPT_CALLS(this->stats);
 
-        zerocopy_pbuf_t *custom_pbuf = get_zerocopy_pbuf(buffer, dim, free);
+        zerocopy_pbuf_t *custom_pbuf = get_zerocopy_pbuf(buffer, dim);
 
         // TODO consider allocating a custom pool for RX or use PBUF_POOL
         struct pbuf *p = pbuf_alloced_custom(
@@ -821,7 +818,7 @@ void CWifiStation::task() {
             // NETIF_STATS_INCREMENT_RX_BYTES(this->stats, p->len);
         }
 
-        buffer = CEspControl::getInstance().getStationRx(if_num, dim);
+        //buffer = CEspControl::getInstance().getStationRx(if_num, dim);
     }
     // NETIF_STATS_RX_TIME_AVERAGE(this->stats);
 }
@@ -1089,7 +1086,7 @@ void CWifiSoftAp::task() {
         // TODO understand if this should be moved into the base class
         // NETIF_STATS_INCREMENT_RX_INTERRUPT_CALLS(this->stats);
 
-        zerocopy_pbuf_t *custom_pbuf = get_zerocopy_pbuf(buffer, dim, free);
+        zerocopy_pbuf_t *custom_pbuf = get_zerocopy_pbuf(buffer, dim);
 
         // TODO consider allocating a custom pool for RX or use PBUF_POOL
         struct pbuf *p = pbuf_alloced_custom(
@@ -1106,7 +1103,7 @@ void CWifiSoftAp::task() {
             // NETIF_STATS_INCREMENT_RX_BYTES(this->stats, p->len);
         }
 
-        buffer = CEspControl::getInstance().getStationRx(if_num, dim);
+        //buffer = CEspControl::getInstance().getStationRx(if_num, dim);
     }
     // NETIF_STATS_RX_TIME_AVERAGE(this->stats);
 }

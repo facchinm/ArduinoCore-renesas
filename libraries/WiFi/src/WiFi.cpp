@@ -23,7 +23,9 @@ const char* CWifi::firmwareVersion() {
 /* -------------------------------------------------------------------------- */
 int CWifi::begin(const char* ssid) {
 /* -------------------------------------------------------------------------- */
-    WiFiStation.connectToAP(ssid, nullptr);
+    if (WiFiStation.connectToAP(ssid, nullptr) != ESP_CONTROL_OK) {
+        return 0;
+    }
     return WiFiStation.begin();
 }
 
@@ -31,7 +33,9 @@ int CWifi::begin(const char* ssid) {
 /* -------------------------------------------------------------------------- */
 int CWifi::begin(const char* ssid, const char *passphrase) {
 /* -------------------------------------------------------------------------- */
-    WiFiStation.connectToAP(ssid, passphrase);
+    if (WiFiStation.connectToAP(ssid, passphrase) != ESP_CONTROL_OK) {
+        return 0;
+    }
     return WiFiStation.begin();;
 }
 
@@ -260,7 +264,7 @@ uint8_t CWifi::status() {
 /* -------------------------------------------------------------------------- */
 int CWifi::hostByName(const char* aHostname, IPAddress& aResult) {
 /* -------------------------------------------------------------------------- */
-    return CLwipIf::getInstance().getHostByName(aHostname, aResult);
+    return CLwipIf::getInstance().getHostByName(aHostname, aResult, true);
 }
 
 /* -------------------------------------------------------------------------- */

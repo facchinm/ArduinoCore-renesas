@@ -23,6 +23,9 @@
 extern int esp_host_perform_spi_communication();
 extern int esp_host_spi_init(void);
 
+inline bool inIrq() {
+   return SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk;
+}
 
 /* -------------------------------------------------------------------------- */
 /* GET INSTANCE SINGLETONE FUNCTION */
@@ -205,12 +208,16 @@ int CEspControl::process_msgs_received(CCtrlMsgWrapper* response) {
    if(res) {
       
       #ifdef ESP_HOST_DEBUG_ENABLED_AVOID
-      Serial.print("   [RX PROCESS] Receiving message from ESP rx queue -> ");
+      if (!inIrq()) {
+         Serial.print("   [RX PROCESS] Receiving message from ESP rx queue -> ");
+      }
       #endif
       /* CONTROL_MESSAGES____________________________________________________ */
       if(msg.get_if_type() == ESP_SERIAL_IF) {
          #ifdef ESP_HOST_DEBUG_ENABLED_AVOID
-         Serial.println(" CONTROL MESSAGE");
+         if (!inIrq()) {
+            Serial.println(" CONTROL MESSAGE");
+         }
          #endif
          /* At this point we are sure we are dealing with a control message 
             there can be 2 possibilities:
@@ -240,9 +247,11 @@ int CEspControl::process_msgs_received(CCtrlMsgWrapper* response) {
       /* NETWORK_MESSAGES____________________________________________________ */
       else if(msg.get_if_type() == ESP_STA_IF) {
          #ifdef ESP_HOST_DEBUG_ENABLED_AVOID
-         Serial.print(" NETWORK MESSAGE");
-         Serial.print(" Station ");
-         Serial.println(msg.get_if_num());
+         if (!inIrq()) {
+            Serial.print(" NETWORK MESSAGE");
+            Serial.print(" Station ");
+            Serial.println(msg.get_if_num());
+         }
          #endif
          __disable_irq();
          CEspCom::storeStationMsg(msg); 

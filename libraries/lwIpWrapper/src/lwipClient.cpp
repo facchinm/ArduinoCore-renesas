@@ -88,8 +88,8 @@ lwipClient::~lwipClient() {
 int lwipClient::connect(const char* host, uint16_t port) {
     IPAddress remote_addr;
 
-    int ret = CLwipIf::getInstance().getHostByName(host, remote_addr); // TODO test this
-    if (ret == 1) {
+    int ret = CLwipIf::getInstance().getHostByName(host, remote_addr, true); // TODO test this
+    if (ret == 0) {
         return connect(remote_addr, port);
     } else {
         return 0;
@@ -124,7 +124,7 @@ int lwipClient::connect(IPAddress ip, uint16_t port) {
         this->tcp_info->pcb, &this->_ip, port, // FIXME check if _ip gets copied
         _lwip_tcp_connected_callback // FIXME we need to define a static private function
     );
-    return err;
+    return err == ERR_OK ? 1 : 0;
 }
 
 err_t _lwip_tcp_connected_callback(void* arg, struct tcp_pcb* tpcb, err_t err) {
@@ -138,7 +138,7 @@ err_t _lwip_tcp_connected_callback(void* arg, struct tcp_pcb* tpcb, err_t err) {
 
     lwipClient* client = (lwipClient*)arg;
 
-    client->connected_callback(tpcb, err);
+    return client->connected_callback(tpcb, err);
 }
 
 err_t lwipClient::connected_callback(struct tcp_pcb* tpcb, err_t err) {
@@ -147,14 +147,6 @@ err_t lwipClient::connected_callback(struct tcp_pcb* tpcb, err_t err) {
         this->stop();
 
         return err;
-    }
-
-    if(tcp_arg == NULL) {
-        // Setup was not performed correctly and the arg was not setup properly
-        // lwip_tcp_connection_close(tpcb, tcp_arg);
-        this->stop();
-
-        return ERR_ARG;
     }
 
     this->tcp_info->state = TCP_CONNECTED;
@@ -280,7 +272,7 @@ size_t lwipClient::write(const uint8_t* buffer, size_t size) {
     tcp_output(this->tcp_info->pcb);
 
     arduino::unlock();
-    return buffer - buffer_cursor;
+    return size;
 }
 
 int lwipClient::read() {
@@ -368,7 +360,7 @@ void lwipClient::stop() {
 }
 
 uint8_t lwipClient::connected() {
-    return this->tcp_info->state == TCP_CONNECTED || this->tcp_info->state == TCP_ACCEPTED;
+    return available() || this->tcp_info->state == TCP_CONNECTED || this->tcp_info->state == TCP_ACCEPTED;
 }
 
 uint8_t lwipClient::status() {

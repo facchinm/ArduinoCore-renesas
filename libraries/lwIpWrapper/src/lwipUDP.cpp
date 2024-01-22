@@ -120,7 +120,7 @@ int lwipUDP::beginPacket(const char* host, uint16_t port)
     int ret = 0;
     // DNSClient dns;
     IPAddress remote_addr;
-    ret = CLwipIf::getInstance().getHostByName(host, remote_addr);
+    ret = CLwipIf::getInstance().getHostByName(host, remote_addr, true);
 
     if (ret == 1) {
         return beginPacket(remote_addr, port);
