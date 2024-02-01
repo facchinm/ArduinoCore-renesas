@@ -252,14 +252,22 @@ void ArduinoSPI::transfer(void *buf, size_t count)
             _spi_ctrl.p_regs->SPCMD_b[0].SPB = 2; /* spi bit width = 32 */
             _spi_ctrl.p_regs->SPCR_b.SPE = 1; /* enable SPI unit */
 
-            while ((index_tx < 2U) && (index_tx < n32)) {
+            
+            uint32_t attempts = 0;
+            while ((index_tx < 2U) && (index_tx < n32) && attempts < 100) {
                 if (_spi_ctrl.p_regs->SPSR_b.SPTEF) {
                     _spi_ctrl.p_regs->SPDR = buffer32[index_tx];
                     index_tx++;
                 }
-            }
+                else {
+                  attempts++;
+                  R_BSP_SoftwareDelay(1,BSP_DELAY_UNITS_MICROSECONDS);
+                }
 
-            while (index_tx < n32) {
+            }
+            
+            attempts = 0;
+            while (index_tx < n32 && attempts < 100) {
                 if (_spi_ctrl.p_regs->SPSR_b.SPRF) {
                     uint32_t tmp = _spi_ctrl.p_regs->SPDR;
                     _spi_ctrl.p_regs->SPDR = buffer32[index_tx];
@@ -267,13 +275,22 @@ void ArduinoSPI::transfer(void *buf, size_t count)
                     index_rx++;
                     index_tx++;
                 }
+                else {
+                  attempts++;
+                  R_BSP_SoftwareDelay(1,BSP_DELAY_UNITS_MICROSECONDS);
+                }
             }
 
-            while (index_rx < n32) { /* collect the last word received */
+            attempts = 0;
+            while (index_rx < n32 && attempts < 100) { /* collect the last word received */
                 if (_spi_ctrl.p_regs->SPSR_b.SPRF) {
                     uint32_t tmp = _spi_ctrl.p_regs->SPDR;
                     buffer32[index_rx] = tmp;
                     index_rx++;
+                }
+                else {
+                  attempts++;
+                  R_BSP_SoftwareDelay(1,BSP_DELAY_UNITS_MICROSECONDS);
                 }
             }
 
