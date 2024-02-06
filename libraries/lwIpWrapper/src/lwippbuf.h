@@ -1,5 +1,5 @@
 #pragma once
-#include <lwip/include/lwip/pbuf.h>
+#include <lwip/pbuf.h>
 
 /**
  * This function aim to free a pbuf chain that has been partially consumed.

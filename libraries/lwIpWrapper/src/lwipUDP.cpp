@@ -3,8 +3,8 @@
 
 #include "lwipUDP.h"
 
-#include "lwip/include/lwip/igmp.h"
-#include "lwip/include/lwip/ip_addr.h"
+#include "lwip/igmp.h"
+#include "lwip/ip_addr.h"
 #include "utils.h"
 #include "lwippbuf.h"
 

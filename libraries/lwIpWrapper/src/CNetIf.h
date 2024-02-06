@@ -13,16 +13,17 @@
 #include <interface.h>
 
 #ifdef USE_LWIP_AS_LIBRARY
-#include "lwip/include/lwip/dhcp.h"
-#include "lwip/include/lwip/dns.h"
-#include "lwip/include/lwip/init.h"
-#include "lwip/include/lwip/ip_addr.h"
-#include "lwip/include/lwip/opt.h"
-#include "lwip/include/lwip/prot/dhcp.h"
-#include "lwip/include/lwip/tcp.h"
-#include "lwip/include/lwip/timeouts.h"
-#include "lwip/include/lwip/udp.h"
-#include "lwip/include/netif/ethernet.h"
+#include "lwip/dhcp.h"
+#include "lwip/mem.h"
+#include "lwip/dns.h"
+#include "lwip/init.h"
+#include "lwip/ip_addr.h"
+#include "lwip/opt.h"
+#include "lwip/prot/dhcp.h"
+#include "lwip/tcp.h"
+#include "lwip/timeouts.h"
+#include "lwip/udp.h"
+#include "netif/ethernet.h"
 #else
 #include "lwIP_Arduino.h"
 #endif

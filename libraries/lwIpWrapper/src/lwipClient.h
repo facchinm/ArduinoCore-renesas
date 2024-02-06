@@ -1,6 +1,6 @@
 #pragma once
 #include <Client.h>
-#include <lwip/include/lwip/tcp.h>
+#include <lwip/tcp.h>
 #include <IPAddress.h>
 #include <Print.h>
 #include "CNetIf.h"

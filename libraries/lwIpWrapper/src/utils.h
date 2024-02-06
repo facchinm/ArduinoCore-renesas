@@ -1,6 +1,6 @@
 #pragma once
 #include <Arduino.h>
-#include "lwip/include/lwip/ip_addr.h"
+#include "lwip/ip_addr.h"
 
 inline ip_addr_t fromArduinoIP(const IPAddress& ip) {
 #if LWIP_IPV4
