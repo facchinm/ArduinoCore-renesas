@@ -98,7 +98,7 @@ void SSLClient::setClient(Client& client)
 void SSLClient::stop()
 {
     if (sslclient->client >= 0) {
-        //sslclient->client->stop();
+        sslclient->client->stop();
         _connected = false;
         _peek = -1;
     }
@@ -241,7 +241,7 @@ int SSLClient::available()
     int res = data_to_read(sslclient);
     if (res < 0) {
         stop();
-        return peeked?peeked:res;
+        return peeked?peeked:0;
     }
     return res+peeked;
 }
