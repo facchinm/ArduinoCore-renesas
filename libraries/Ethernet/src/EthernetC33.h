@@ -12,16 +12,12 @@
 
 #include "EthernetClient.h"
 #include "EthernetServer.h"
-#include "EthernetDriver.h"
 
 #include "CNetIf.h"
 
 #ifdef ARDUINO_PORTENTA_C33
 
-// TODO Instantiate the drivers for ethernet with default configuration parameters
-inline EthernetC33Driver EthernetDriver(2, 2, mem_malloc, 1536);
-
 // FIXME Instantiate a global variable from CEth, calling it Ethernet
-inline CEth Ethernet(&EthernetDriver);
+extern CEth Ethernet;
 
 #endif // ARDUINO_PORTENTA_C33
