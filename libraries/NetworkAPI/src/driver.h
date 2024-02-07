@@ -42,7 +42,7 @@ public:
      */
     virtual network_driver_send_err_t send(uint8_t* data, uint16_t len,
         network_driver_send_flags_t flags=NETWORK_DRIVER_SEND_FLAGS_NONE,
-        void(*free_function)(void*)=free) = 0;
+        std::function<void(void*)>free_function=free) = 0;
 
     /*
      * Sets the callback funtion that is then used to consume incoming data
