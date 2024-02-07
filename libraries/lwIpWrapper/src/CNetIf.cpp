@@ -552,8 +552,19 @@ err_t CEth::output(struct netif* ni, struct pbuf* p) {
     do {
         // NETIF_STATS_INCREMENT_TX_TRANSMIT_CALLS(this->stats);
         // NETIF_STATS_TX_TIME_START(this->stats);
-        auto err = driver->send((uint8_t*)q->payload, q->len);
-        if(err != 0) {
+        // auto err = driver->send((uint8_t*)q->payload, q->len);
+
+        pbuf_ref(q);
+        auto err = driver->send(
+            (uint8_t*)q->payload, q->len,
+            NETWORK_DRIVER_SEND_FLAGS_ZERO_COPY,
+            [&q](void* ptr) {
+                pbuf_free(q);
+            });
+
+        if(err == NETWORK_DRIVER_SEND_ERR_OK) {
+            q = q->next;
+        } else if(err != NETWORK_DRIVER_SEND_ERR_BUFFER) {
             // NETIF_STATS_INCREMENT_ERROR(this->stats, err);
             // NETIF_STATS_INCREMENT_TX_TRANSMIT_FAILED_CALLS(this->stats);
             errval = ERR_IF;
@@ -561,7 +572,6 @@ err_t CEth::output(struct netif* ni, struct pbuf* p) {
         }
         // NETIF_STATS_INCREMENT_TX_BYTES(this->stats, q->len);
         // NETIF_STATS_TX_TIME_AVERAGE(this->stats);
-        q = q->next;
     } while(q != nullptr && errval != ERR_OK);
 
     return errval;
