@@ -18,14 +18,12 @@ void _irq_ether_callback(ether_callback_args_t* p_args);
 
 extern void dump_buffer(uint8_t* b, uint32_t len, uint8_t blocks=4, uint8_t cols=16);
 
-EthernetC33Driver::EthernetC33Driver(
-    uint8_t rx_descriptors_len,
-    uint8_t tx_descriptors_len,
-    void* (*buffer_allocator)(unsigned int),
+template<uint8_t rx_descriptors_len, uint8_t tx_descriptors_len>
+EthernetC33Driver<rx_descriptors_len, tx_descriptors_len>::EthernetC33Driver(
+    void* (*buffer_allocator)(memory_type_t),
     uint16_t buffer_size,
     uint8_t* mac_address, uint8_t len)
 : NetworkDriver(),
-rx_descriptors_len(rx_descriptors_len), tx_descriptors_len(tx_descriptors_len),
 buffer_allocator(buffer_allocator), buffer_size(buffer_size) {
     if(mac_address != nullptr && (len == 6 || len == 8)) {
         memcpy(this->macaddress, mac_address, len);
@@ -39,33 +37,25 @@ buffer_allocator(buffer_allocator), buffer_size(buffer_size) {
         this->macaddress[4] = t->unique_id_words[2];
         this->macaddress[5] = t->unique_id_words[3];
     }
-
-    this->rx_descriptors = (ether_instance_descriptor_t*)
-        memalign(16, sizeof(ether_instance_descriptor_t)*rx_descriptors_len);
-    this->tx_descriptors = (ether_instance_descriptor_t*)
-        memalign(16, sizeof(ether_instance_descriptor_t)*tx_descriptors_len);
-        // memalign(16, sizeof(ether_instance_descriptor_t)*1);
-
-    rx_buffers      = (uint8_t**) malloc(sizeof(void*)*rx_descriptors_len);
-
-    tx_buffers_info = (_tx_buffer_info*) malloc(sizeof(_tx_buffer_info)*tx_descriptors_len);
     memset(tx_buffers_info, 0, sizeof(_tx_buffer_info)*tx_descriptors_len);
 
     this->init();
 }
 
-EthernetC33Driver::~EthernetC33Driver() {
+template<uint8_t rx_descriptors_len, uint8_t tx_descriptors_len>
+EthernetC33Driver<rx_descriptors_len, tx_descriptors_len>::~EthernetC33Driver() {
     free(this->rx_descriptors);
-    this->rx_descriptors = nullptr;
+    // this->rx_descriptors = nullptr;
     free(this->tx_descriptors);
-    this->tx_descriptors = nullptr;
+    // this->tx_descriptors = nullptr;
 
     // TODO free memory of buffers, callback with size 0?
     // this->rx_buffers
     // this->tx_buffers
 }
 
-void EthernetC33Driver::init() {
+template<uint8_t rx_descriptors_len, uint8_t tx_descriptors_len>
+void EthernetC33Driver<rx_descriptors_len, tx_descriptors_len>::init() {
     // FIXME understand the configuration performed here
     // FIXME understand how to pass this configuration as a parameter
     R_IOPORT_PinCfg(&g_ioport_ctrl, BSP_IO_PORT_02_PIN_14, ETHERNET_PIN_CFG);
@@ -108,19 +98,20 @@ void EthernetC33Driver::init() {
     this->cfg.padding_offset                  = 0;
     this->cfg.broadcast_filter                = 0;
     this->cfg.p_mac_address                   = this->macaddress;
-    this->cfg.num_tx_descriptors              = this->tx_descriptors_len;
-    this->cfg.num_rx_descriptors              = this->rx_descriptors_len;
+    this->cfg.num_tx_descriptors              = tx_descriptors_len;
+    this->cfg.num_rx_descriptors              = rx_descriptors_len;
     this->cfg.pp_ether_buffers                = this->rx_buffers;
     this->cfg.ether_buffer_size               = this->buffer_size;
     this->cfg.irq                             = FSP_INVALID_VECTOR;
     this->cfg.interrupt_priority              = (this->irq_priority);
-    this->cfg.p_callback                      = _irq_ether_callback;
+    this->cfg.p_callback                      = _irq_ether_callback; // TODO
     this->cfg.p_ether_phy_instance            = &this->phy_instance;
     this->cfg.p_context                       = this;
     this->cfg.p_extend                        = &this->extended_cfg;
 }
 
-void EthernetC33Driver::begin() {
+template<uint8_t rx_descriptors_len, uint8_t tx_descriptors_len>
+void EthernetC33Driver<rx_descriptors_len, tx_descriptors_len>::begin() {
     // Fill the rx_buffers
     uint8_t i=0;
     for(; i < rx_descriptors_len; i++) {
@@ -139,7 +130,8 @@ void EthernetC33Driver::begin() {
     }
 }
 
-void EthernetC33Driver::poll() {
+template<uint8_t rx_descriptors_len, uint8_t tx_descriptors_len>
+void EthernetC33Driver<rx_descriptors_len, tx_descriptors_len>::poll() {
     // Polling the rx descriptor for available data
 
     uint32_t rx_frame_dim = 0;
@@ -217,8 +209,9 @@ void EthernetC33Driver::poll() {
     // }
 }
 
-network_driver_send_err_t EthernetC33Driver::send(
-    uint8_t* data, uint16_t len, network_driver_send_flags_t flags, void(*free_function)(void*)) {
+template<uint8_t rx_descriptors_len, uint8_t tx_descriptors_len>
+network_driver_send_err_t EthernetC33Driver<rx_descriptors_len, tx_descriptors_len>::send(
+    uint8_t* data, uint16_t len, network_driver_send_flags_t flags, std::function<void(void*)> free_function) {
     // dump_buffer(tx_buffers_info[last].buffer, len);
     // dump_buffer(data, len);
     // DEBUG_INFO("[send] %08X, %u", data, len);
@@ -235,6 +228,8 @@ network_driver_send_err_t EthernetC33Driver::send(
     if(flags == NETWORK_DRIVER_SEND_FLAGS_NONE) {
         // it could be nice to use buffer_allocator, but we need a way to deallocate it
         this->tx_buffers_info[this->last].buffer = (uint8_t*)memalign(32, len); // TODO does this need to be memaligned? I think not
+        // this->tx_buffers_info[this->last].buffer = (uint8_t*)mem_malloc(len);
+        // this->tx_buffers_info[this->last].buffer = (uint8_t*)buffer_allocator(len);
 
         if(this->tx_buffers_info[this->last].buffer == nullptr) {
             res = NETWORK_DRIVER_SEND_ERR_BUFFER;
@@ -248,6 +243,7 @@ network_driver_send_err_t EthernetC33Driver::send(
     }
 
     this->tx_buffers_info[this->last].len = len;
+    this->tx_buffers_info[this->last].sent = 0;
     this->tx_buffers_info[this->last].free_function = free_function;
 
     // dump_buffer(this->tx_buffers_info[this->last].buffer, len);
@@ -257,7 +253,7 @@ network_driver_send_err_t EthernetC33Driver::send(
     // TODO handle the case where a packet is already being transmitted, should WRITE be called after the queued packet is correctly sent?
     err = R_ETHER_Write(
         &this->ctrl, this->tx_buffers_info[this->last].buffer, this->tx_buffers_info[this->last].len);
-    this->last = (this->last + 1) % this->tx_descriptors_len;
+    this->last = (this->last + 1) % tx_descriptors_len;
     if(err != FSP_SUCCESS) {
         res = NETWORK_DRIVER_SEND_ERR_DRIVER;
     }
@@ -267,7 +263,8 @@ exit:
     return res;
 }
 
-fsp_err_t EthernetC33Driver::open() {
+template<uint8_t rx_descriptors_len, uint8_t tx_descriptors_len>
+fsp_err_t EthernetC33Driver<rx_descriptors_len, tx_descriptors_len>::open() {
     bool rv = IRQManager::getInstance().addPeripheral(IRQ_ETHERNET, &cfg);
 
     if(rv) {
@@ -283,7 +280,8 @@ fsp_err_t EthernetC33Driver::open() {
     return R_ETHER_Open(&this->ctrl, &this->cfg);
 }
 
-void EthernetC33Driver::up() {
+template<uint8_t rx_descriptors_len, uint8_t tx_descriptors_len>
+void EthernetC33Driver<rx_descriptors_len, tx_descriptors_len>::up() {
     fsp_err_t err = FSP_SUCCESS;
 
     err = this->open();
@@ -301,17 +299,19 @@ void EthernetC33Driver::up() {
     // return err; // FIXME find a proper way of returning an error
 }
 
-void EthernetC33Driver::down() {
+template<uint8_t rx_descriptors_len, uint8_t tx_descriptors_len>
+void EthernetC33Driver<rx_descriptors_len, tx_descriptors_len>::down() {
     // return
     // FIXME implement this
 }
 
-fsp_err_t EthernetC33Driver::linkProcess() {
+template<uint8_t rx_descriptors_len, uint8_t tx_descriptors_len>
+fsp_err_t EthernetC33Driver<rx_descriptors_len, tx_descriptors_len>::linkProcess() {
     return R_ETHER_LinkProcess(&this->ctrl);
 }
 
-
-void EthernetC33Driver::eth_reset_due_to_ADE_bit() {
+template<uint8_t rx_descriptors_len, uint8_t tx_descriptors_len>
+void EthernetC33Driver<rx_descriptors_len, tx_descriptors_len>::eth_reset_due_to_ADE_bit() {
     uint32_t *EDMAC_EESR_REG = (uint32_t *)0x40114028;
     uint32_t *EDMAC_CONTROL_REG = (uint32_t *)0x40114000;
     if( (*EDMAC_EESR_REG & ADE_BIT_MASK) == ADE_BIT_MASK) {
@@ -321,7 +321,8 @@ void EthernetC33Driver::eth_reset_due_to_ADE_bit() {
     }
 }
 
-void EthernetC33Driver::irq_ether_callback(ether_callback_args_t* p_args) {
+template<uint8_t rx_descriptors_len, uint8_t tx_descriptors_len>
+void EthernetC33Driver<rx_descriptors_len, tx_descriptors_len>::irq_ether_callback(ether_callback_args_t* p_args) {
     // ether_callback_args_t* p_args = (ether_callback_args_t*) args;
     p_args->status_ecsr;
     uint32_t reg_eesr = p_args->status_eesr;
@@ -365,6 +366,7 @@ void EthernetC33Driver::irq_ether_callback(ether_callback_args_t* p_args) {
                     tx_buffers_info[first].free_function = nullptr;
                 } else {
                     free(tx_buffers_info[first].buffer);
+                    // mem_free(tx_buffers_info[first].buffer);
                 }
                 tx_buffers_info[first].len = 0;
                 tx_buffers_info[first].buffer = nullptr;
@@ -387,16 +389,6 @@ void EthernetC33Driver::irq_ether_callback(ether_callback_args_t* p_args) {
             }
         }
     }
-}
-
-void _irq_ether_callback(ether_callback_args_t* p_args) {
-    // _IRQEtherHandler* context = (_IRQEtherHandler*)p_args->p_context;
-        // dynamic_cast<_IRQEtherHandler*>(p_args->p_context);
-    EthernetC33Driver* context =
-        // dynamic_cast<EthernetC33Driver*>(p_args->p_context);
-        (EthernetC33Driver*)p_args->p_context;
-
-    context->irq_ether_callback(p_args);
 }
 
 // #ifdef IGMP_HARDWARE_LEVEL
