@@ -313,6 +313,7 @@ public:
         return wifi_status;
     }
 protected:
+    int initModule();
     static const char wifistation_ifname[];
 
     /*

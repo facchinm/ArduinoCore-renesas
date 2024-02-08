@@ -636,36 +636,23 @@ int CWifiStation::connectToAP(const char* ssid, const char *passphrase) {
     int rv = ESP_CONTROL_CTRL_ERROR; // FIXME this should be set with an error meaning AP not found
     bool found = false;
     int8_t best_index = -1; // this index is used to find the ap with the best rssi
-    int time_num = 0;
 
-    CEspControl::getInstance().listenForStationDisconnectEvent([this] (CCtrlMsgWrapper *resp) -> int {
-        netif_set_link_down(&this->ni);
-        wifi_status = WL_DISCONNECTED;
-        return ESP_CONTROL_OK;
-    });
-    CEspControl::getInstance().listenForInitEvent([this] (CCtrlMsgWrapper *resp) -> int {
-        // Serial.println("init");
-        this->hw_init = true;
-        return ESP_CONTROL_OK;
-    });
-
-    if ((rv=CEspControl::getInstance().initSpiDriver()) != 0  && !hw_init) {
-        rv = -1; // FIXME put a proper error code
-        goto exit;
-    }
-    wifi_status = WL_NO_SSID_AVAIL;
-
-    while (time_num < 100 && !hw_init) { // TODO #define WIFI_INIT_TIMEOUT_MS 10000
-        CEspControl::getInstance().communicateWithEsp();
-        R_BSP_SoftwareDelay(100, BSP_DELAY_UNITS_MILLISECONDS);
-        time_num++;
+    if(!hw_init) {
+        rv = initModule();
+        if(rv != ESP_CONTROL_OK) {
+            goto exit;
+        }
     }
 
     CLwipIf::getInstance().syncTimer();
     rv = CEspControl::getInstance().setWifiMode(WIFI_MODE_STA);
+    if(rv != ESP_CONTROL_OK) {
+        goto exit;
+    }
     CLwipIf::getInstance().enableTimer();
 
-    if((rv=this->scanForAp()) != WL_SCAN_COMPLETED) {
+    rv=this->scanForAp();
+    if(wifi_status != WL_SCAN_COMPLETED) {
         rv = -2;
         goto exit;
     }
@@ -710,11 +697,44 @@ exit:
     return rv;
 }
 
+int CWifiStation::initModule() {
+    int rv = ESP_CONTROL_CTRL_ERROR;
+    int time_num = 0;
+
+    CEspControl::getInstance().listenForStationDisconnectEvent([this] (CCtrlMsgWrapper *resp) -> int {
+        netif_set_link_down(&this->ni);
+        wifi_status = WL_DISCONNECTED;
+        return ESP_CONTROL_OK;
+    });
+    CEspControl::getInstance().listenForInitEvent([this] (CCtrlMsgWrapper *resp) -> int {
+        // Serial.println("init");
+        this->hw_init = true;
+        return ESP_CONTROL_OK;
+    });
+
+    if ((rv=CEspControl::getInstance().initSpiDriver()) != 0  && !hw_init) {
+        rv = -1; // FIXME put a proper error code
+        goto exit;
+    }
+    wifi_status = WL_NO_SSID_AVAIL;
+
+    while (time_num < 100 && !hw_init) { // TODO #define WIFI_INIT_TIMEOUT_MS 10000
+        CEspControl::getInstance().communicateWithEsp();
+        R_BSP_SoftwareDelay(100, BSP_DELAY_UNITS_MILLISECONDS);
+        time_num++;
+    }
+exit:
+    return rv;
+}
+
 int CWifiStation::scanForAp() {
     access_points.clear();
 
-    CLwipIf::getInstance().syncTimer();
+    if(!hw_init) {
+        initModule();
+    }
 
+    CLwipIf::getInstance().syncTimer();
     int res = CEspControl::getInstance().getAccessPointScanList(access_points);
     CLwipIf::getInstance().enableTimer();
 
@@ -725,7 +745,7 @@ int CWifiStation::scanForAp() {
     }
 
 
-    return wifi_status;
+    return access_points.size();
 }
 
 // disconnect
