@@ -1025,13 +1025,13 @@ int CWifiSoftAp::startSoftAp(const char* ssid, const char* passphrase, uint8_t c
     int rv = CEspControl::getInstance().startSoftAccessPoint(cfg);
     if (rv == ESP_CONTROL_OK) {
         CEspControl::getInstance().getSoftAccessPointConfig(soft_ap_cfg);
-        // wifi_status = WL_AP_LISTENING;
+        wifi_status = WL_AP_LISTENING;
         netif_set_link_up(&this->ni);
 
         // FIXME the dhcp server should be started somewhere else
         dhcps_start(&(this->ni));
     } else {
-        // wifi_status = WL_AP_FAILED;
+        wifi_status = WL_AP_FAILED;
     }
 
     CLwipIf::getInstance().enableTimer();

@@ -41,28 +41,32 @@ int CWifi::begin(const char* ssid, const char *passphrase) {
 uint8_t CWifi::beginAP(const char *ssid) {
 /* -------------------------------------------------------------------------- */
     WiFiSoftAP.begin();
-    return WiFiSoftAP.startSoftAp(ssid); // FIXME put default password here
+    WiFiSoftAP.startSoftAp(ssid); // FIXME put default password here
+    return WiFiSoftAP.status();
 }
 
 /* -------------------------------------------------------------------------- */
 uint8_t CWifi::beginAP(const char *ssid, uint8_t channel) {
 /* -------------------------------------------------------------------------- */
     WiFiSoftAP.begin();
-    return WiFiSoftAP.startSoftAp(ssid, nullptr, channel);
+    WiFiSoftAP.startSoftAp(ssid, nullptr, channel);
+    return WiFiSoftAP.status();
 }
 
 /* -------------------------------------------------------------------------- */
 uint8_t CWifi::beginAP(const char *ssid, const char* passphrase) {
 /* -------------------------------------------------------------------------- */
     WiFiSoftAP.begin();
-    return WiFiSoftAP.startSoftAp(ssid, passphrase);
+    WiFiSoftAP.startSoftAp(ssid, passphrase);
+    return WiFiSoftAP.status();
 }
 
 /* -------------------------------------------------------------------------- */
 uint8_t CWifi::beginAP(const char *ssid, const char* passphrase, uint8_t channel) {
 /* -------------------------------------------------------------------------- */
     WiFiSoftAP.begin();
-    return WiFiSoftAP.startSoftAp(ssid, passphrase, channel);
+    WiFiSoftAP.startSoftAp(ssid, passphrase, channel);
+    return WiFiSoftAP.status();
 }
 
 
@@ -159,19 +163,31 @@ int8_t CWifi::scanNetworks() {
 /* -------------------------------------------------------------------------- */
 IPAddress CWifi::localIP() {
 /* -------------------------------------------------------------------------- */
-    return WiFiStation.localIP();
+    if(WiFiStation.status() != WL_IDLE_STATUS) {
+        return WiFiStation.localIP();
+    } else {
+        return WiFiSoftAP.localIP();
+    }
 }
 
 /* -------------------------------------------------------------------------- */
 IPAddress CWifi::subnetMask() {
 /* -------------------------------------------------------------------------- */
-    return WiFiStation.subnetMask();
+    if(WiFiStation.status() != WL_IDLE_STATUS) {
+        return WiFiStation.subnetMask();
+    } else {
+        return WiFiSoftAP.subnetMask();
+    }
 }
 
 /* -------------------------------------------------------------------------- */
 IPAddress CWifi::gatewayIP() {
 /* -------------------------------------------------------------------------- */
-    return WiFiStation.gatewayIP();
+    if(WiFiStation.status() != WL_IDLE_STATUS) {
+        return WiFiStation.gatewayIP();
+    } else {
+        return WiFiSoftAP.gatewayIP();
+    }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -181,7 +197,11 @@ IPAddress CWifi::dnsIP(int n) {
 
 /* -------------------------------------------------------------------------- */
 const char* CWifi::SSID() {
-    return WiFiStation.getSSID();
+    if(WiFiStation.status() != WL_IDLE_STATUS) {
+        return WiFiStation.getSSID();
+    } else {
+        return WiFiSoftAP.getSSID();
+    }
 }
 /* -------------------------------------------------------------------------- */
 
@@ -193,19 +213,31 @@ int32_t CWifi::RSSI() {
 
 /* -------------------------------------------------------------------------- */
 uint8_t CWifi::encryptionType() {
-    return WiFiStation.getEncryptionType();
+    if(WiFiStation.status() != WL_IDLE_STATUS) {
+        return WiFiStation.getEncryptionType();
+    } else {
+        return WiFiSoftAP.getEncryptionType();
+    }
 }
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
 uint8_t* CWifi::BSSID(uint8_t* bssid) {
-    return WiFiStation.getBSSID(bssid);
+    if(WiFiStation.status() != WL_IDLE_STATUS) {
+        return WiFiStation.getBSSID(bssid);
+    } else {
+        return WiFiSoftAP.getBSSID(bssid);
+    }
 }
 /* -------------------------------------------------------------------------- */
 
 /* -------------------------------------------------------------------------- */
 uint8_t CWifi::channel() {
-    return WiFiStation.getChannel();
+    if(WiFiStation.status() != WL_IDLE_STATUS) {
+        return WiFiStation.getChannel();
+    } else {
+        return WiFiSoftAP.getChannel();
+    }
 }
 /* -------------------------------------------------------------------------- */
 

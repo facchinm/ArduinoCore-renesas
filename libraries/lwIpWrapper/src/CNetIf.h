@@ -362,6 +362,10 @@ public:
 
     int setLowPowerMode();
     int resetLowPowerMode();
+
+    inline WifiStatus_t status() {
+        return wifi_status;
+    }
 protected:
     static const char softap_ifname[];
     /*
@@ -378,6 +382,8 @@ private:
     std::vector<AccessPoint_t> access_points;
     SoftApCfg_t soft_ap_cfg;
     bool hw_init; // TODO this should be moved to the wifi driver class
+
+    WifiStatus_t wifi_status = WL_IDLE_STATUS; // TODO this should be moved to the wifi driver class
 };
 
 class CLwipIf {
