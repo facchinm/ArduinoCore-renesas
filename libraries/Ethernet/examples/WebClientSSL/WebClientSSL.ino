@@ -12,7 +12,7 @@
 // if you don't want to use DNS (and reduce your sketch size)
 // use the numeric IP instead of the name for the server:
 //IPAddress server(74,125,232,128);  // numeric IP for Google (no DNS)
-char server[] = "www.google.com";    // name address for Google (using DNS)
+char server[] = "www.example.org";    // name address for Google (using DNS)
 
 // Set the static IP address to use if the DHCP fails to assign
 IPAddress ip(192, 168, 0, 177);
@@ -46,7 +46,7 @@ void setup() {
     Serial.println("connected");
     // Make a HTTP request:
     client.println("GET / HTTP/1.1");
-    client.println("Host: www.google.com");
+    client.println("Host: www.example.org");
     client.println("Connection: close");
     client.println();
   } else {
