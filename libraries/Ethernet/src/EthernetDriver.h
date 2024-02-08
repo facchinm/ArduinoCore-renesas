@@ -59,7 +59,6 @@ private:
         uint16_t len=0;
         uint8_t* buffer=nullptr;
         std::function<void(void*)> free_function=nullptr;
-        uint8_t sent;
     };
     _tx_buffer_info tx_buffers_info[tx_descriptors_len];
 

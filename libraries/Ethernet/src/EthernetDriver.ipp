@@ -192,21 +192,22 @@ void EthernetC33Driver<rx_descriptors_len, tx_descriptors_len>::poll() {
     }
     // arduino::unlock();
 
-    // Polling the tx descriptor for Tx transmission completed
-    // while(R_ETHER_TxStatusGet(this->ctrl, tx_buffers_info[first].buffer) {
-        // // FIXME check that first and the completed packet are valid
-        // // FIXME move this into the poll function
-        // tx_buffers_info[first].len = 0;
-
-        // if(tx_buffers_info[first].free_function) {
-        //     tx_buffers_info[first].free_function(tx_buffers_info[first].buffer);
-        //     tx_buffers_info[first].free_function = nullptr;
-        // } else {
-        //     free(tx_buffers_info[first].buffer);
-        // }
-        // tx_buffers_info[first].buffer = nullptr;
-        // first = (first + 1) % tx_descriptors_len;
-    // }
+    // arduino::lock();
+    // FIXME try TxStatusGet in order to remove irq handler for tx
+    // R_ETHER_TxStatusGet(this->ctrl, tx_buffers_info[first].buffer)
+    while(first != first_irq) {
+        if(tx_buffers_info[first].free_function) {
+            tx_buffers_info[first].free_function(tx_buffers_info[first].buffer);
+            tx_buffers_info[first].free_function = nullptr;
+        } else {
+            free(tx_buffers_info[first].buffer);
+            // mem_free(tx_buffers_info[first].buffer);
+        }
+        tx_buffers_info[first].len = 0;
+        tx_buffers_info[first].buffer = nullptr;
+        first = (first + 1) % tx_descriptors_len;
+    }
+    // arduino::unlock();
 }
 
 template<uint8_t rx_descriptors_len, uint8_t tx_descriptors_len>
@@ -243,7 +244,6 @@ network_driver_send_err_t EthernetC33Driver<rx_descriptors_len, tx_descriptors_l
     }
 
     this->tx_buffers_info[this->last].len = len;
-    this->tx_buffers_info[this->last].sent = 0;
     this->tx_buffers_info[this->last].free_function = free_function;
 
     // dump_buffer(this->tx_buffers_info[this->last].buffer, len);
@@ -360,17 +360,7 @@ void EthernetC33Driver<rx_descriptors_len, tx_descriptors_len>::irq_ether_callba
                     return;
                 }
                 arduino::lock();
-
-                if(tx_buffers_info[first].free_function) {
-                    tx_buffers_info[first].free_function(tx_buffers_info[first].buffer);
-                    tx_buffers_info[first].free_function = nullptr;
-                } else {
-                    free(tx_buffers_info[first].buffer);
-                    // mem_free(tx_buffers_info[first].buffer);
-                }
-                tx_buffers_info[first].len = 0;
-                tx_buffers_info[first].buffer = nullptr;
-                first = (first + 1) % tx_descriptors_len;
+                first_irq = (first_irq + 1) % tx_descriptors_len;
                 arduino::unlock();
 
 
