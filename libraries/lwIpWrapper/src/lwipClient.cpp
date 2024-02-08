@@ -8,9 +8,6 @@ extern "C" {
 #include "lwippbuf.h"
 #include "CNetIf.h"
 #include "utils.h"
-// FIXME understand hos to syncronize the interrupt thread and "userspace"
-// TODO look into tcp_bind_netif for Ethernet and WiFiClient classes
-// TODO generalize the functions for extracting and inserting data into pbufs, they may be reused in UDP
 // TODO look into application polling:
 //      When a connection is idle (i.e., no data is either transmitted or received), lwIP will repeatedly poll the application by calling a specified callback function. This can be used either as a watchdog timer for killing connections that have stayed idle for too long, or as a method of waiting for memory to become available. For instance, if a call to tcp_write() has failed because memory wasn't available, the application may use the polling functionality to call tcp_write() again when the connection has been idle for a while.
 
