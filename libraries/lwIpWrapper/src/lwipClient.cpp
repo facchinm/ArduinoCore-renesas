@@ -402,7 +402,10 @@ void lwipClient::flush() {
     if (this->tcp_info && this->tcp_info->pcb == NULL) {
         return;
     }
+
+    CLwipIf::getInstance().syncTimer();
     tcp_output(this->tcp_info->pcb);
+    CLwipIf::getInstance().enableTimer();
 }
 
 void lwipClient::close_pcb() {

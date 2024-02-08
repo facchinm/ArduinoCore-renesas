@@ -123,9 +123,15 @@ lwipClient lwipServer::available()
 lwipClient* lwipServer::available_ptr()
 {
     lwipClient* res=nullptr;
+    if(clients_available == 0) {
+        CLwipIf::getInstance().syncTimer();
+        CLwipIf::getInstance().task();
+        CLwipIf::getInstance().enableTimer();
+    }
     arduino::lock();
+
     if(size > 0 && clients_available>0) {
-        res = clients[size-clients_available--]; // TODO verify index
+        res = clients[size-clients_available--];
     }
     arduino::unlock();
 
