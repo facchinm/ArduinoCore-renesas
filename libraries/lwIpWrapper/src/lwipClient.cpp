@@ -414,6 +414,10 @@ void lwipClient::close_pcb() {
         tcp_accept(this->tcp_info->pcb, nullptr);
 
         err_t err = tcp_close(this->tcp_info->pcb);
+
+        if(err != ERR_OK) {
+            DEBUG_INFO("ERR on pcb close %d", err);
+        }
         this->tcp_info->state = TCP_CLOSING;
 
         this->tcp_info->pcb = nullptr;
