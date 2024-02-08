@@ -13,6 +13,6 @@ public:
 
     WiFiClient available() {
         lwipClient* res = available_ptr();
-        return res != nullptr ? WiFiClient(*res) : WiFiClient(CLIENT_NONE);
+        return res != nullptr ? WiFiClient(*res) : WiFiClient(nullptr, nullptr);
     }
 };

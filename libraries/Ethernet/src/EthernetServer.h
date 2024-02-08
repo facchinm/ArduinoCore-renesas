@@ -13,6 +13,6 @@ public:
 
     EthernetClient available() {
         lwipClient* res = available_ptr();
-        return res != nullptr ? EthernetClient(*res) : EthernetClient(CLIENT_NONE);
+        return res != nullptr ? EthernetClient(*res) : EthernetClient(nullptr, nullptr);
     }
 };

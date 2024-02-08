@@ -111,7 +111,7 @@ bool lwipServer::accept(struct tcp_pcb* new_client) {
 lwipClient lwipServer::available()
 {
     lwipClient* res = available_ptr();
-    return res != nullptr ? *res : CLIENT_NONE;
+    return res != nullptr ? *res : lwipClient(nullptr, nullptr);
 }
 
 lwipClient* lwipServer::available_ptr()
