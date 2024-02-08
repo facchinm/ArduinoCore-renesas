@@ -549,17 +549,27 @@ err_t CEth::output(struct netif* ni, struct pbuf* p) {
      *   then lwip is supposed to handle that, that may be an issue
      */
     struct pbuf *q = p;
+    network_driver_send_err_t err = NETWORK_DRIVER_SEND_ERR_OK;
+    pbuf_ref(p);
     do {
         // NETIF_STATS_INCREMENT_TX_TRANSMIT_CALLS(this->stats);
         // NETIF_STATS_TX_TIME_START(this->stats);
         // auto err = driver->send((uint8_t*)q->payload, q->len);
 
-        pbuf_ref(q);
-        auto err = driver->send(
+        if(err == NETWORK_DRIVER_SEND_ERR_OK) {
+            // increment the reference count of pbuf when it is accepted by the driver for the send
+            arduino::lock();
+            pbuf_ref(q->next);
+            arduino::unlock();
+        }
+
+        err = driver->send(
             (uint8_t*)q->payload, q->len,
             NETWORK_DRIVER_SEND_FLAGS_ZERO_COPY,
-            [&q](void* ptr) {
+            [q](void* ptr) {
+                arduino::lock();
                 pbuf_free(q);
+                arduino::unlock();
             });
 
         if(err == NETWORK_DRIVER_SEND_ERR_OK) {
