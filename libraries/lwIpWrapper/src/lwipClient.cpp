@@ -21,10 +21,29 @@ err_t _lwip_tcp_recv_callback(void* arg, struct tcp_pcb* tpcb, struct pbuf* p, e
 static err_t _lwip_tcp_sent_callback(void* arg, struct tcp_pcb* tpcb, u16_t len);
 void _lwip_tcp_err_callback(void *arg, err_t err);
 
-lwipClient::lwipClient()
-: tcp_info(new tcp_info_t)
-{
-    // tcp_info = std::shared_ptr<tcp_info_t>(new tcp_info_t);
+lwipClient::lwipClient() {
+
+    arduino::lock();
+
+    // void* ptr = mem_malloc(sizeof(tcp_info_t));
+    // tcp_info = std::shared_ptr<tcp_info_t>(
+    //     (tcp_info_t*)ptr,
+    //     [](tcp_info_t *ptr) {
+    //         arduino::lock();
+    //         mem_free(ptr);
+    //         arduino::unlock();
+    //     });
+
+    tcp_info = std::shared_ptr<tcp_info_t>(
+        new tcp_info_t
+        , [](tcp_info_t* ptr) {
+            arduino::lock();
+            delete ptr;
+            arduino::unlock();
+        }
+        );
+    arduino::unlock();
+
     this->tcp_info->state         = TCP_NONE;
     this->tcp_info->pcb           = nullptr;
     this->tcp_info->server        = nullptr;
@@ -36,25 +55,50 @@ lwipClient::lwipClient()
 sketches but sock is ignored. */
 lwipClient::lwipClient(uint8_t sock) {}
 
-lwipClient::lwipClient(struct tcp_pcb* pcb, lwipServer *server)
-: tcp_info(new tcp_info_t)
-{
-    // tcp_info = std::shared_ptr<tcp_info_t>(new tcp_info_t);
-    this->tcp_info->state         = TCP_ACCEPTED;
-    this->tcp_info->pcb           = pcb;
-    this->tcp_info->server        = server;
-    this->tcp_info->pbuf_offset   = 0;
-    this->tcp_info->pbuf_head     = nullptr;
+lwipClient::lwipClient(struct tcp_pcb* pcb, lwipServer *server) {
 
-    tcp_arg(this->tcp_info->pcb, this);
+    arduino::lock();
 
-    tcp_err(this->tcp_info->pcb, _lwip_tcp_err_callback); // FIXME make this a user callback?
+    if(pcb == nullptr) {
+        tcp_info = std::shared_ptr<tcp_info_t>();
+    } else {
+        // tcp_info = std::shared_ptr<tcp_info_t>(
+        //     new tcp_info_t
+        //     , [](tcp_info_t* ptr) {
+        //         arduino::lock();
+        //         delete ptr;
+        //         arduino::unlock();
+        //     }
+        //     );
 
-    /* initialize LwIP tcp_recv callback function */
-    tcp_recv(this->tcp_info->pcb, _lwip_tcp_recv_callback);
+        void* ptr = mem_malloc(sizeof(tcp_info_t));
+        tcp_info = std::shared_ptr<tcp_info_t>(
+            (tcp_info_t*)ptr,
+            [](tcp_info_t *ptr) {
+                arduino::lock();
+                mem_free(ptr);
+                arduino::unlock();
+            });
 
-    /* initialize LwIP tcp_sent callback function */
-    tcp_sent(this->tcp_info->pcb, _lwip_tcp_sent_callback); // FIXME do we actually need it?
+
+        this->tcp_info->state         = TCP_ACCEPTED;
+        this->tcp_info->pcb           = pcb;
+        this->tcp_info->server        = server;
+        this->tcp_info->pbuf_offset   = 0;
+        this->tcp_info->pbuf_head     = nullptr;
+
+        tcp_arg(this->tcp_info->pcb, this);
+
+        tcp_err(this->tcp_info->pcb, _lwip_tcp_err_callback); // FIXME make this a user callback?
+
+        /* initialize LwIP tcp_recv callback function */
+        tcp_recv(this->tcp_info->pcb, _lwip_tcp_recv_callback);
+
+        /* initialize LwIP tcp_sent callback function */
+        tcp_sent(this->tcp_info->pcb, _lwip_tcp_sent_callback); // FIXME do we actually need it?
+    }
+
+    arduino::unlock();
 }
 
 lwipClient::lwipClient(const lwipClient& c)
@@ -80,7 +124,7 @@ lwipClient& lwipClient::operator=(lwipClient&& rhs) {
 }
 
 lwipClient::~lwipClient() {
-    if(this->tcp_info->state != TCP_CLOSING) {
+    if(this->tcp_info && this->tcp_info->state != TCP_CLOSING) {
         this->stop();
     }
 }
@@ -98,6 +142,10 @@ int lwipClient::connect(const char* host, uint16_t port) {
 
 int lwipClient::connect(IPAddress ip, uint16_t port) {
     err_t err = ERR_OK;
+
+    if(!this->tcp_info) {
+        return -1;
+    }
 
     // the connect method is only connected when trying to connect a client to a server
     // and not when a client is created out of a listening socket
@@ -260,6 +308,10 @@ size_t lwipClient::write(uint8_t b) {
 }
 
 size_t lwipClient::write(const uint8_t* buffer, size_t size) {
+    if(!this->tcp_info) {
+        return 0;
+    }
+
     CLwipIf::getInstance().syncTimer();
 
     uint8_t* buffer_cursor = (uint8_t*)buffer;
@@ -306,7 +358,7 @@ int lwipClient::read() {
 }
 
 int lwipClient::read(uint8_t* buffer, size_t size) {
-    if(size==0 || buffer==nullptr || this->tcp_info->pbuf_head==nullptr) {
+    if(size==0 || buffer==nullptr || !this->tcp_info || this->tcp_info->pbuf_head==nullptr) {
         return 0; // TODO extend checks
     }
     // copy data from the lwip buffer to the app provided buffer
@@ -347,7 +399,7 @@ int lwipClient::peek() {
 }
 
 void lwipClient::flush() {
-    if ((this->tcp_info->pcb == NULL)) {
+    if (this->tcp_info && this->tcp_info->pcb == NULL) {
         return;
     }
     tcp_output(this->tcp_info->pcb);
@@ -389,7 +441,7 @@ void lwipClient::stop() {
 }
 
 uint8_t lwipClient::connected() {
-    return this->tcp_info->state == TCP_CONNECTED || this->tcp_info->state == TCP_ACCEPTED;
+    return this->tcp_info && (this->tcp_info->state == TCP_CONNECTED || this->tcp_info->state == TCP_ACCEPTED);
 }
 
 uint8_t lwipClient::status() {
@@ -403,7 +455,7 @@ uint8_t lwipClient::status() {
 // EthernetServer::available() as the condition in an if-statement.
 
 lwipClient::operator bool() {
-    return (this->tcp_info->pcb != nullptr);
+    return (this->tcp_info && this->tcp_info->pcb != nullptr);
 }
 
 bool lwipClient::operator==(const lwipClient& rhs) {
