@@ -82,13 +82,18 @@ void lwipServer::remove(lwipClient* client) {
         if(found) {
             // we move the client to delete to the end of the array, then we remove it
             clients[i-1] = clients[i];
-        } else if(*client == *clients[i]) {
+        } else if(client->tcp_info == clients[i]->tcp_info) {
             found = true;
         }
     }
 
-    delete clients[--size];
-    clients[size] = nullptr;
+    if(found) {
+        --size;
+        clients[size]->~lwipClient();
+        mem_free((void*)clients[size]);
+        // delete clients[size];
+        clients[size] = nullptr;
+    }
 
     arduino::unlock();
 }
@@ -98,7 +103,8 @@ bool lwipServer::accept(struct tcp_pcb* new_client) {
     // this->clean();
     arduino::lock();
     if(size < MAX_CLIENT-1) {
-        clients[size] = new lwipClient(new_client, this);
+        clients[size] = new(mem_malloc(sizeof(lwipClient))) lwipClient(new_client, this);
+        // clients[size] = new lwipClient(new_client, this);
         size++;
         clients_available++;
         res = true;

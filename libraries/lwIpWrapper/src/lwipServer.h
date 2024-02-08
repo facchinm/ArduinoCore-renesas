@@ -46,7 +46,7 @@ protected:
     // size var indicates how full is the array
     // the total number of pcb should be MEMP_NUM_TCP_PCB, -1 that is the server PCB
 private:
-    uint8_t size=0, clients_available=0;
+    volatile uint8_t size=0, clients_available=0;
     lwipClient* clients[MAX_CLIENT-1];
 
     friend err_t tcp_accept_callback(void* arg, struct tcp_pcb* newpcb, err_t err);
