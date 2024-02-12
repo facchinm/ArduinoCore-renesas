@@ -446,16 +446,13 @@ public:
 
     inline void syncTimer() {
         timer.disable_overflow_irq();
-        this->task();
     }
 
     inline void enableTimer() {
         timer.enable_overflow_irq();
     }
 #else // LWIP_USE_TIMER
-    inline void syncTimer() {
-        this->task();
-    }
+    inline void syncTimer() { }
 
     inline void enableTimer() { }
 #endif // LWIP_USE_TIMER

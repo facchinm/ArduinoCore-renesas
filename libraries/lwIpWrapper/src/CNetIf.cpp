@@ -644,6 +644,7 @@ int CWifiStation::connectToAP(const char* ssid, const char *passphrase) {
     }
 
     CLwipIf::getInstance().syncTimer();
+    CLwipIf::getInstance().task();
     rv = CEspControl::getInstance().setWifiMode(WIFI_MODE_STA);
     if(rv != ESP_CONTROL_OK) {
         goto exit;
@@ -678,12 +679,12 @@ int CWifiStation::connectToAP(const char* ssid, const char *passphrase) {
         memcpy(ap.bssid, access_points[best_index].bssid, BSSID_LENGTH);
 
         CLwipIf::getInstance().syncTimer();
+        CLwipIf::getInstance().task();
         rv=CEspControl::getInstance().connectAccessPoint(ap);
 
         if (rv == ESP_CONTROL_OK) {
             CEspControl::getInstance().getAccessPointConfig(access_point_cfg);
             wifi_status = WL_CONNECTED;
-
 
             netif_set_link_up(&this->ni);
         } else {
@@ -734,6 +735,7 @@ int CWifiStation::scanForAp() {
     }
 
     CLwipIf::getInstance().syncTimer();
+    CLwipIf::getInstance().task();
     int res = CEspControl::getInstance().getAccessPointScanList(access_points);
     CLwipIf::getInstance().enableTimer();
 
@@ -750,6 +752,7 @@ int CWifiStation::scanForAp() {
 // disconnect
 int CWifiStation::disconnectFromAp() {
     CLwipIf::getInstance().syncTimer();
+    CLwipIf::getInstance().task();
 
     auto res = CEspControl::getInstance().disconnectAccessPoint();
 
@@ -985,6 +988,8 @@ int CWifiSoftAp::begin(const IPAddress &ip, const IPAddress &nm, const IPAddress
     }
 
     CLwipIf::getInstance().syncTimer();
+    CLwipIf::getInstance().task();
+
     res = CEspControl::getInstance().setWifiMode(WIFI_MODE_AP);
     CLwipIf::getInstance().enableTimer();
 
@@ -1001,6 +1006,8 @@ exit:
 // TODO there are requirements for ssid and password
 int CWifiSoftAp::startSoftAp(const char* ssid, const char* passphrase, uint8_t channel) {
     CLwipIf::getInstance().syncTimer();
+    CLwipIf::getInstance().task();
+
     SoftApCfg_t cfg;
 
     strncpy((char*)cfg.ssid, ssid, SSID_LENGTH);
@@ -1174,6 +1181,7 @@ uint8_t CWifiSoftAp::getChannel() {
 
 int CWifiSoftAp::setLowPowerMode() {
     CLwipIf::getInstance().syncTimer();
+    CLwipIf::getInstance().task();
     auto res = CEspControl::getInstance().setPowerSaveMode(1);
     CLwipIf::getInstance().enableTimer();
 
@@ -1182,6 +1190,7 @@ int CWifiSoftAp::setLowPowerMode() {
 
 int CWifiSoftAp::resetLowPowerMode() {
     CLwipIf::getInstance().syncTimer();
+    CLwipIf::getInstance().task();
     auto res = CEspControl::getInstance().setPowerSaveMode(1);
     CLwipIf::getInstance().enableTimer();
 
