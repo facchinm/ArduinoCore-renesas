@@ -23,17 +23,27 @@ const char* CWifi::firmwareVersion() {
 /* -------------------------------------------------------------------------- */
 int CWifi::begin(const char* ssid) {
 /* -------------------------------------------------------------------------- */
-    WiFiStation.connectToAP(ssid, nullptr);
-    return WiFiStation.begin();
+    auto res = WiFiStation.connectToAP(ssid, nullptr);
+    if(res != 0) {
+        WiFiStation.begin();
+        return WiFiStation.status();
+    } else {
+        return WiFiStation.status();
+    }
 }
 
 
 /* -------------------------------------------------------------------------- */
 int CWifi::begin(const char* ssid, const char *passphrase) {
 /* -------------------------------------------------------------------------- */
-    WiFiStation.connectToAP(ssid, passphrase);
-    WiFiStation.begin();
-    return WiFiStation.status();
+    auto res = WiFiStation.connectToAP(ssid, passphrase);
+
+    if(WiFiStation.status() == WL_CONNECTED) {
+        WiFiStation.begin();
+        return WiFiStation.status();
+    } else {
+        return WiFiStation.status();
+    }
 }
 
 /* passphrase is needed so a default one will be set */
