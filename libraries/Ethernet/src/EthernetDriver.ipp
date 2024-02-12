@@ -86,8 +86,8 @@ void EthernetC33Driver<rx_descriptors_len, tx_descriptors_len>::init() {
     this->phy_instance.p_api                  = &g_ether_phy_on_ether_phy;
 
     // setup the driver
-    this->extended_cfg.p_rx_descriptors       = this->rx_descriptors; // FIXME
-    this->extended_cfg.p_tx_descriptors       = this->tx_descriptors; // FIXME
+    this->extended_cfg.p_rx_descriptors       = this->rx_descriptors;
+    this->extended_cfg.p_tx_descriptors       = this->tx_descriptors;
 
 
     this->cfg.channel                         = ETHERNET_CHANNEL;
@@ -95,7 +95,7 @@ void EthernetC33Driver<rx_descriptors_len, tx_descriptors_len>::init() {
     this->cfg.multicast                       = ETHER_MULTICAST_ENABLE;
     this->cfg.promiscuous                     = ETHER_PROMISCUOUS_DISABLE;
     this->cfg.flow_control                    = ETHER_FLOW_CONTROL_DISABLE;
-    this->cfg.padding                         = ETHER_PADDING_DISABLE; // TODO
+    this->cfg.padding                         = ETHER_PADDING_DISABLE;
     this->cfg.padding_offset                  = 0;
     this->cfg.broadcast_filter                = 0;
     this->cfg.p_mac_address                   = this->macaddress;
@@ -105,7 +105,7 @@ void EthernetC33Driver<rx_descriptors_len, tx_descriptors_len>::init() {
     this->cfg.ether_buffer_size               = this->buffer_size;
     this->cfg.irq                             = FSP_INVALID_VECTOR;
     this->cfg.interrupt_priority              = (this->irq_priority);
-    this->cfg.p_callback                      = _irq_ether_callback; // TODO
+    this->cfg.p_callback                      = _irq_ether_callback;
     this->cfg.p_ether_phy_instance            = &this->phy_instance;
     this->cfg.p_context                       = this;
     this->cfg.p_extend                        = &this->extended_cfg;
