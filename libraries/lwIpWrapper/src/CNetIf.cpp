@@ -550,39 +550,38 @@ err_t CEth::output(struct netif* ni, struct pbuf* p) {
      */
     struct pbuf *q = p;
     network_driver_send_err_t err = NETWORK_DRIVER_SEND_ERR_OK;
+    // CLwipIf::getInstance().syncTimer();
     pbuf_ref(p);
     do {
-        // NETIF_STATS_INCREMENT_TX_TRANSMIT_CALLS(this->stats);
-        // NETIF_STATS_TX_TIME_START(this->stats);
-        // auto err = driver->send((uint8_t*)q->payload, q->len);
-
-        if(err == NETWORK_DRIVER_SEND_ERR_OK) {
-            // increment the reference count of pbuf when it is accepted by the driver for the send
-            arduino::lock();
-            pbuf_ref(q->next);
-            arduino::unlock();
+        if(q->next == nullptr) {
+            err = driver->send(
+                (uint8_t*)q->payload, q->len,
+                NETWORK_DRIVER_SEND_FLAGS_ZERO_COPY,
+                [p](void* ptr) {
+                    pbuf_free(p);
+                });
+        } else {
+            err = driver->send(
+                (uint8_t*)q->payload, q->len,
+                NETWORK_DRIVER_SEND_FLAGS_ZERO_COPY);
         }
 
-        err = driver->send(
-            (uint8_t*)q->payload, q->len,
-            NETWORK_DRIVER_SEND_FLAGS_ZERO_COPY,
-            [q](void* ptr) {
-                arduino::lock();
-                pbuf_free(q);
-                arduino::unlock();
-            });
-
         if(err == NETWORK_DRIVER_SEND_ERR_OK) {
+            // q = pbuf_dechain(q);
             q = q->next;
-        } else if(err != NETWORK_DRIVER_SEND_ERR_BUFFER) {
+            // pbuf_ref(q);
+        } else if(err == NETWORK_DRIVER_SEND_ERR_BUFFER) {
             // NETIF_STATS_INCREMENT_ERROR(this->stats, err);
             // NETIF_STATS_INCREMENT_TX_TRANSMIT_FAILED_CALLS(this->stats);
-            errval = ERR_IF;
-            break;
+            // errval = ERR_IF;
+            // pbuf_free(p); // decrement the ref we added to the head
+            // break;
+            // driver->poll();
         }
         // NETIF_STATS_INCREMENT_TX_BYTES(this->stats, q->len);
         // NETIF_STATS_TX_TIME_AVERAGE(this->stats);
-    } while(q != nullptr && errval != ERR_OK);
+    } while(q != nullptr);
+    // CLwipIf::getInstance().enableTimer();
 
     return errval;
 }
