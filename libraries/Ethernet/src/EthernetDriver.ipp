@@ -12,6 +12,7 @@
 #define ETHER_FRAME_TRANSFER_COMPLETED          (1UL << 21)
 #define ETHER_MAGIC_PACKET_DETECTED_MASK        (1UL << 1)
 #define ETHER_RD0_RACT                          (0x80000000UL)
+#define ETHER_TD0_TACT                          (0x80000000UL)
 
 // utility/proxy local functions
 void _irq_ether_callback(ether_callback_args_t* p_args);
@@ -192,22 +193,24 @@ void EthernetC33Driver<rx_descriptors_len, tx_descriptors_len>::poll() {
     }
     // arduino::unlock();
 
-    // arduino::lock();
     // FIXME try TxStatusGet in order to remove irq handler for tx
-    // R_ETHER_TxStatusGet(this->ctrl, tx_buffers_info[first].buffer)
-    while(first != first_irq) {
+    free_tx_buffers();
+}
+
+template<uint8_t rx_descriptors_len, uint8_t tx_descriptors_len>
+void EthernetC33Driver<rx_descriptors_len, tx_descriptors_len>::free_tx_buffers() {
+    while(0 == (tx_descriptors[first].status & ETHER_TD0_TACT) && this->tx_buffers_info[this->last].len != 0) {
         if(tx_buffers_info[first].free_function) {
             tx_buffers_info[first].free_function(tx_buffers_info[first].buffer);
             tx_buffers_info[first].free_function = nullptr;
         } else {
-            free(tx_buffers_info[first].buffer);
+            // free(tx_buffers_info[first].buffer);
             // mem_free(tx_buffers_info[first].buffer);
         }
         tx_buffers_info[first].len = 0;
         tx_buffers_info[first].buffer = nullptr;
         first = (first + 1) % tx_descriptors_len;
     }
-    // arduino::unlock();
 }
 
 template<uint8_t rx_descriptors_len, uint8_t tx_descriptors_len>
@@ -219,7 +222,12 @@ network_driver_send_err_t EthernetC33Driver<rx_descriptors_len, tx_descriptors_l
     network_driver_send_err_t res = NETWORK_DRIVER_SEND_ERR_OK;
     fsp_err_t err;
 
-    arduino::lock();
+    // the buffer is full when last references a buffer which values are non zero
+    // check if the buffers can be freed
+    if(this->tx_buffers_info[this->last].len != 0) {
+        this->free_tx_buffers();
+    }
+
     // the current buffer we are referencing is not yet consumed
     if(this->tx_buffers_info[this->last].len != 0) {
         res = NETWORK_DRIVER_SEND_ERR_BUFFER;
@@ -259,7 +267,6 @@ network_driver_send_err_t EthernetC33Driver<rx_descriptors_len, tx_descriptors_l
     }
 
 exit:
-    arduino::unlock();
     return res;
 }
 
@@ -351,18 +358,6 @@ void EthernetC33Driver<rx_descriptors_len, tx_descriptors_len>::irq_ether_callba
                 }
             }
             if (ETHER_FRAME_TRANSFER_COMPLETED  == (reg_eesr & ETHER_FRAME_TRANSFER_COMPLETED)) {
-
-
-                // FIXME check that first and the completed packet are valid
-                // FIXME move this into the poll function
-                // FIXME define a function out of this
-                if(tx_buffers_info[first].len == 0 || tx_buffers_info[first].buffer == nullptr) {
-                    return;
-                }
-                arduino::lock();
-                first_irq = (first_irq + 1) % tx_descriptors_len;
-                arduino::unlock();
-
 
                 if(this->tx_frame_cbk != nullptr) {
                     this->tx_frame_cbk();

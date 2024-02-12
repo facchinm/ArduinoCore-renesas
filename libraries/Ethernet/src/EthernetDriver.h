@@ -63,7 +63,7 @@ private:
     _tx_buffer_info tx_buffers_info[tx_descriptors_len];
 
     // tx circular buffer cursors
-    volatile uint8_t last = 0, first_irq=0, first=0;
+    uint8_t last = 0, first=0;
 
     uint8_t macaddress[8]; // FIXME differentiate between 6 and 8 len
     uint8_t macaddress_len = 0;
@@ -88,6 +88,8 @@ private:
 
     // Strange function that needs to be present, for whatever reason, keeping it
     void eth_reset_due_to_ADE_bit();
+
+    void free_tx_buffers();
 
     virtual void irq_ether_callback(ether_callback_args_t* p_args);
     friend void _irq_ether_callback(ether_callback_args_t* p_args);
