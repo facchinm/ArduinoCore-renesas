@@ -787,46 +787,28 @@ err_t CWifiStation::init(struct netif* ni) {
 err_t CWifiStation::output(struct netif* _ni, struct pbuf* p) {
     // FIXME set ifn
     int ifn = 0; // interface number in CNetIf.cpp seems to not be set anywhere
-    uint8_t *buf = nullptr;
-    uint16_t size=p->tot_len;
+    struct pbuf* q = p;
     err_t errval = ERR_IF;
     int err = ESP_CONTROL_OK;
 
     // NETIF_STATS_INCREMENT_TX_TRANSMIT_CALLS(this->stats);
     // NETIF_STATS_TX_TIME_START(this->stats);
-
-    // p may be a chain of pbufs
-    if(p->next != nullptr) {
-        buf = (uint8_t*) malloc(size*sizeof(uint8_t));
-        if(buf == nullptr) {\
-            // NETIF_STATS_INCREMENT_ERROR(this->stats, ERR_MEM);
+    do {
+        if ((err = CEspControl::getInstance().sendBuffer(
+                ESP_STA_IF, ifn, (uint8_t*)q->payload, q->len)) == ESP_CONTROL_OK) {
+            errval = ERR_OK;
+            // NETIF_STATS_INCREMENT_TX_BYTES(this->stats, size);
+            // NETIF_STATS_TX_TIME_AVERAGE(this->stats);
+        } else {
+            // NETIF_STATS_INCREMENT_ERROR(this->stats, err);
             // NETIF_STATS_INCREMENT_TX_TRANSMIT_FAILED_CALLS(this->stats);
-            errval = ERR_MEM;
-            goto exit;
+            // errval = ERR_IF;
+            // break;
         }
 
-        // copy the content of pbuf
-        assert(pbuf_copy_partial(p, buf, size, 0) == size);
-    } else {
-        buf = (uint8_t*)p->payload;
-    }
+        q = q->next;
+    } while(q != nullptr);
 
-    // sendBuffer makes a memcpy of buffer
-    // TODO send buffer should handle the buffer deletion and avoid a memcpy
-    if ((err = CEspControl::getInstance().sendBuffer(
-            ESP_STA_IF, ifn, buf, size)) == ESP_CONTROL_OK) {
-        errval = ERR_OK;
-        // NETIF_STATS_INCREMENT_TX_BYTES(this->stats, size);
-        // NETIF_STATS_TX_TIME_AVERAGE(this->stats);
-    } else {
-        // NETIF_STATS_INCREMENT_ERROR(this->stats, err);
-        // NETIF_STATS_INCREMENT_TX_TRANSMIT_FAILED_CALLS(this->stats);
-    }
-
-exit:
-    if(p->next != nullptr && buf != nullptr) {
-        free(buf);
-    }
     return errval;
 }
 
@@ -1070,46 +1052,28 @@ err_t CWifiSoftAp::init(struct netif* ni) {
 err_t CWifiSoftAp::output(struct netif* _ni, struct pbuf* p) {
     // FIXME set ifn
     int ifn = 0; // interface number in CNetIf.cpp seems to not be set anywhere
-    uint8_t *buf = nullptr;
-    uint16_t size=p->tot_len;
+    struct pbuf* q = p;
     err_t errval = ERR_IF;
     int err = ESP_CONTROL_OK;
 
     // NETIF_STATS_INCREMENT_TX_TRANSMIT_CALLS(this->stats);
     // NETIF_STATS_TX_TIME_START(this->stats);
-
-    // p may be a chain of pbufs
-    if(p->next != nullptr) {
-        buf = (uint8_t*) malloc(size*sizeof(uint8_t));
-        if(buf == nullptr) {
-            // NETIF_STATS_INCREMENT_ERROR(this->stats, ERR_MEM);
+    do {
+        if ((err = CEspControl::getInstance().sendBuffer(
+            ESP_AP_IF, ifn, (uint8_t*)q->payload, q->len)) == ESP_CONTROL_OK) {
+            errval = ERR_OK;
+            // NETIF_STATS_INCREMENT_TX_BYTES(this->stats, size);
+            // NETIF_STATS_TX_TIME_AVERAGE(this->stats);
+        } else {
+            // NETIF_STATS_INCREMENT_ERROR(this->stats, err);
             // NETIF_STATS_INCREMENT_TX_TRANSMIT_FAILED_CALLS(this->stats);
-            errval = ERR_MEM;
-            goto exit;
+            // errval = ERR_IF;
+            // break;
         }
 
-        // copy the content of pbuf
-        assert(pbuf_copy_partial(p, buf, size, 0) == size);
-    } else {
-        buf = (uint8_t*)p->payload;
-    }
+        q = q->next;
+    } while(q != nullptr);
 
-    // sendBuffer makes a memcpy of buffer
-    // TODO send buffer should handle the buffer deletion and avoid a memcpy
-    if ((err = CEspControl::getInstance().sendBuffer(
-            ESP_AP_IF, ifn, buf, size)) == ESP_CONTROL_OK) {
-        errval = ERR_OK;
-        // NETIF_STATS_INCREMENT_TX_BYTES(this->stats, size);
-        // NETIF_STATS_TX_TIME_AVERAGE(this->stats);
-            } else {
-        // NETIF_STATS_INCREMENT_ERROR(this->stats, err);
-        // NETIF_STATS_INCREMENT_TX_TRANSMIT_FAILED_CALLS(this->stats);
-    }
-
-exit:
-    if(p->next != nullptr && buf != nullptr) {
-        free(buf);
-    }
     return errval;
 }
 
