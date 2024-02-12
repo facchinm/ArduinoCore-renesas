@@ -9,8 +9,8 @@ public:
     EthernetClient(struct tcp_pcb *pcb, lwipServer *server)
     : lwipClient(pcb, server) {
     }
-    EthernetClient(const lwipClient &c)
-    : lwipClient(c) {
+    EthernetClient(lwipClient &&c)
+    : lwipClient(std::move(c)) {
         this->bindCNetIf(Ethernet);
     }
 

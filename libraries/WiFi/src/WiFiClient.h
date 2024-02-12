@@ -9,8 +9,8 @@ public:
     WiFiClient(struct tcp_pcb *pcb, lwipServer *server)
     : lwipClient(pcb, server) {
     }
-    WiFiClient(const lwipClient &c)
-    : lwipClient(c) {
+    WiFiClient(lwipClient &&c)
+    : lwipClient(std::move(c)) {
         this->bindCNetIf(WiFiStation);
     }
 

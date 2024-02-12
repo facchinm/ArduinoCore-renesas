@@ -13,6 +13,6 @@ public:
 
     WiFiClient available() {
         lwipClient* res = available_ptr();
-        return res != nullptr ? WiFiClient(*res) : WiFiClient(nullptr, nullptr);
+        return res != nullptr ? WiFiClient(std::move(*res)) : WiFiClient(nullptr, nullptr);
     }
 };
