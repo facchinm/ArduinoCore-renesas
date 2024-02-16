@@ -20,17 +20,19 @@ void _lwip_tcp_err_callback(void *arg, err_t err);
 
 lwipClient::lwipClient() {
 
-    arduino::lock();
-
-    // void* ptr = mem_malloc(sizeof(tcp_info_t));
+    // CLwipIf::getInstance().syncTimer();
+    // arduino::lock();
     // tcp_info = std::shared_ptr<tcp_info_t>(
-    //     (tcp_info_t*)ptr,
+    //     (tcp_info_t*)mem_malloc(sizeof(tcp_info_t)),
     //     [](tcp_info_t *ptr) {
-    //         arduino::lock();
+    //         CLwipIf::getInstance().syncTimer();
     //         mem_free(ptr);
-    //         arduino::unlock();
+    //         CLwipIf::getInstance().enableTimer();
     //     });
+    // arduino::unlock();
+    // CLwipIf::getInstance().enableTimer();
 
+    arduino::lock();
     tcp_info = std::shared_ptr<tcp_info_t>(
         new tcp_info_t
         , [](tcp_info_t* ptr) {
@@ -54,28 +56,30 @@ lwipClient::lwipClient(uint8_t sock) {}
 
 lwipClient::lwipClient(struct tcp_pcb* pcb, lwipServer *server) {
 
-    arduino::lock();
 
     if(pcb == nullptr) {
         tcp_info = std::shared_ptr<tcp_info_t>();
     } else {
-        // tcp_info = std::shared_ptr<tcp_info_t>(
-        //     new tcp_info_t
-        //     , [](tcp_info_t* ptr) {
-        //         arduino::lock();
-        //         delete ptr;
-        //         arduino::unlock();
-        //     }
-        //     );
-
-        void* ptr = mem_malloc(sizeof(tcp_info_t));
+        arduino::lock();
         tcp_info = std::shared_ptr<tcp_info_t>(
-            (tcp_info_t*)ptr,
-            [](tcp_info_t *ptr) {
+            new tcp_info_t
+            , [](tcp_info_t* ptr) {
                 arduino::lock();
-                mem_free(ptr);
+                delete ptr;
                 arduino::unlock();
-            });
+            }
+            );
+
+        // CLwipIf::getInstance().syncTimer();
+        // void* ptr = mem_malloc(sizeof(tcp_info_t));
+        // tcp_info = std::shared_ptr<tcp_info_t>(
+        //     (tcp_info_t*)ptr,
+        //     [](tcp_info_t *ptr) {
+        //         arduino::lock();
+        //         mem_free(ptr);
+        //         arduino::unlock();
+        //     });
+        // CLwipIf::getInstance().enableTimer();
 
 
         this->tcp_info->state         = TCP_ACCEPTED;
@@ -93,9 +97,9 @@ lwipClient::lwipClient(struct tcp_pcb* pcb, lwipServer *server) {
 
         /* initialize LwIP tcp_sent callback function */
         tcp_sent(this->tcp_info->pcb, _lwip_tcp_sent_callback); // FIXME do we actually need it?
+        arduino::unlock();
     }
 
-    arduino::unlock();
 }
 
 lwipClient::lwipClient(const lwipClient& c)
