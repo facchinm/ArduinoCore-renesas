@@ -24,6 +24,7 @@ static void _getHostByNameCBK(const char *name, const ip_addr_t *ipaddr, void *c
 
 #ifdef LWIP_USE_TIMER
 static void timer_cb(timer_callback_args_t* arg);
+FspTimer CLwipIf::timer;
 #endif // LWIP_USE_TIMER
 
 // Custom Pbuf definition used to handle RX zero copy
@@ -109,7 +110,22 @@ CLwipIf::CLwipIf() {
      * Since this is a constrained environment we could accept performance loss and
      * delegate lwip to handle lost packets.
      */
-    timer.begin(TIMER_MODE_PERIODIC, type, ch, 100.0, 0, timer_cb, this); // TODO make the user decide how to handle these parameters
+    timer.begin(TIMER_MODE_PERIODIC, type, ch, 100.0, 0, timer_cb, this);
+    timer.setup_overflow_irq();
+    timer.open();
+    timer.start();
+#else
+    static TaskHandle_t timer_task;
+    void timer_task_func(void* arg);
+    auto const timer_rc = xTaskCreate
+    (
+      timer_task_func,
+      static_cast<const char*>("Timer Thread"),
+      512 / 4,     /* usStackDepth in words */
+      nullptr,     /* pvParameters */
+      3,           /* uxPriority */
+      &timer_task /* pxCreatedTask */
+    );
 #endif
 }
 
@@ -1026,6 +1042,7 @@ int CWifiSoftAp::startSoftAp(const char* ssid, const char* passphrase, uint8_t c
     CLwipIf::getInstance().enableTimer();
     return rv;
 }
+
 
 err_t CWifiSoftAp::init(struct netif* ni) {
     // Setting up netif
