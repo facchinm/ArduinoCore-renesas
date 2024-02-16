@@ -717,6 +717,7 @@ int CWifiStation::initModule() {
         goto exit;
     }
     wifi_status = WL_NO_SSID_AVAIL;
+    delay(2000);
 
     while (time_num < 100 && !hw_init) { // TODO #define WIFI_INIT_TIMEOUT_MS 10000
         CEspControl::getInstance().communicateWithEsp();
