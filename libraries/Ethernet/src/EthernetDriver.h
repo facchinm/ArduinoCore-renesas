@@ -9,7 +9,7 @@
 #include <functional>
 
 
-typedef uint16_t memory_type_t;
+typedef size_t memory_type_t;
 typedef void* (*buffer_allocator_t)(memory_type_t);
 
 template<uint8_t rx_descriptors_len, uint8_t tx_descriptors_len>

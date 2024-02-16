@@ -1,7 +1,12 @@
 #include <EthernetC33.h>
 #include "EthernetDriver.h"
 
-EthernetC33Driver<2, 2> EthernetDriver(mem_malloc, 1536);
+static void* driver_malloc(size_t size) {
+
+    return mem_malloc(size);
+}
+
+EthernetC33Driver<3,3> EthernetDriver(driver_malloc, 1536);
 CEth Ethernet(&EthernetDriver);
 
 void _irq_ether_callback(ether_callback_args_t* p_args) {
