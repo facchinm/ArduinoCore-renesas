@@ -143,6 +143,7 @@ int lwipClient::connect(const char* host, uint16_t port) {
 
 int lwipClient::connect(IPAddress ip, uint16_t port) {
     err_t err = ERR_OK;
+    uint64_t start = millis();
 
     if(!this->tcp_info) {
         return -1;
@@ -154,14 +155,11 @@ int lwipClient::connect(IPAddress ip, uint16_t port) {
     this->tcp_info->pcb = tcp_new();
 
     if(this->tcp_info->pcb == nullptr) {
-        // return ; // TODO find the proper error code
-        return err;
+        err = ERR_MEM;
+        goto exit;
     }
 
     tcp_err(this->tcp_info->pcb, _lwip_tcp_err_callback); // FIXME make this a user callback?
-    if(err != ERR_OK) {
-        return err;
-    }
 
     this->tcp_info->state = TCP_NONE;
 
@@ -175,12 +173,17 @@ int lwipClient::connect(IPAddress ip, uint16_t port) {
         _lwip_tcp_connected_callback // FIXME we need to define a static private function
     );
 
-    while(!connected()) {
+    if(err != ERR_OK) {
+        goto exit;
+    }
+
+    while(!connected() && millis()-start < 10000) {
         CLwipIf::getInstance().task();
     }
+exit:
     CLwipIf::getInstance().enableTimer();
 
-    return err == ERR_OK? 1: -err;
+    return err == ERR_OK? connected(): err;
 }
 
 err_t _lwip_tcp_connected_callback(void* arg, struct tcp_pcb* tpcb, err_t err) {
