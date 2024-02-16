@@ -1,7 +1,6 @@
 #ifndef _ARDUINO_LWIP_NETIF_H_
 #define _ARDUINO_LWIP_NETIF_H_
 
-// #define LWIP_USE_TIMER
 #define UNUSED(x) (void)(x)
 
 #define USE_LWIP_AS_LIBRARY
@@ -27,10 +26,12 @@
 #include "lwIP_Arduino.h"
 #endif
 
-#define LWIP_USE_TIMER
+//#define LWIP_USE_TIMER
 
 #ifdef LWIP_USE_TIMER
 #include "FspTimer.h"
+#else
+#include "Arduino_FreeRTOS.h"
 #endif
 
 #define MAX_SOFAT_CONNECTION_DEF 5
@@ -368,7 +369,9 @@ public:
     {
         async_requests_ongoing = true;
         delay(10);
+        #ifdef LWIP_USE_TIMER
         timer.enable_overflow_irq();
+        #endif
     }
 
     /* --------------

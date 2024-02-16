@@ -12,7 +12,9 @@ bool CLwipIf::connected_to_access_point = false;
 WifiStatus_t CLwipIf::wifi_status = WL_IDLE_STATUS;
 bool CLwipIf::pending_eth_rx = false;
 
+#ifdef LWIP_USE_TIMER
 FspTimer CLwipIf::timer;
+#endif
 
 ip_addr_t* u8_to_ip_addr(uint8_t* ipu8, ip_addr_t* ipaddr)
 {
@@ -88,6 +90,18 @@ CLwipIf::CLwipIf()
     timer.setup_overflow_irq();
     timer.open();
     timer.start();
+#else
+    static TaskHandle_t timer_task;
+    void timer_task_func(void* arg);
+    auto const timer_rc = xTaskCreate
+    (
+      timer_task_func,
+      static_cast<const char*>("Timer Thread"),
+      512 / 4,     /* usStackDepth in words */
+      nullptr,     /* pvParameters */
+      3,           /* uxPriority */
+      &timer_task /* pxCreatedTask */
+    );
 #endif
 }
 
@@ -114,7 +128,9 @@ void CLwipIf::lwip_task()
     sys_check_timeouts();
 
     if (willing_to_start_sync_req) {
+        #ifdef LWIP_USE_TIMER
         timer.disable_overflow_irq();
+        #endif
         willing_to_start_sync_req = false;
         async_requests_ongoing = false;
     }
@@ -786,6 +802,17 @@ void CLwipIf::timer_cb(timer_callback_args_t *arg) {
   CLwipIf::getInstance().lwip_task();
 }
 #endif
+
+/* -------------------------------------------------------------------------- */
+void timer_task_func(void* arg) {
+/*  -------------------------------------------------------------------------- */
+  (void)arg;
+  while (1) {
+    CLwipIf::getInstance().lwip_task();
+    delay(100);
+  }
+}
+
 
 /* ***************************************************************************
  *                               DNS related functions
