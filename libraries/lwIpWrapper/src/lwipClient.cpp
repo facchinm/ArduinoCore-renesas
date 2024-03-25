@@ -32,7 +32,7 @@ lwipClient::lwipClient() {
     // arduino::unlock();
     // CLwipIf::getInstance().enableTimer();
 
-    arduino::lock();
+    //arduino::lock();
     tcp_info = std::shared_ptr<tcp_info_t>(
         new tcp_info_t
         , [](tcp_info_t* ptr) {
@@ -41,7 +41,7 @@ lwipClient::lwipClient() {
             arduino::unlock();
         }
         );
-    arduino::unlock();
+    //arduino::unlock();
 
     this->tcp_info->state         = TCP_NONE;
     this->tcp_info->pcb           = nullptr;
@@ -60,7 +60,7 @@ lwipClient::lwipClient(struct tcp_pcb* pcb, lwipServer *server) {
     if(pcb == nullptr) {
         tcp_info = std::shared_ptr<tcp_info_t>();
     } else {
-        arduino::lock();
+        //arduino::lock();
         tcp_info = std::shared_ptr<tcp_info_t>(
             new tcp_info_t
             , [](tcp_info_t* ptr) {
@@ -97,7 +97,7 @@ lwipClient::lwipClient(struct tcp_pcb* pcb, lwipServer *server) {
 
         /* initialize LwIP tcp_sent callback function */
         tcp_sent(this->tcp_info->pcb, _lwip_tcp_sent_callback); // FIXME do we actually need it?
-        arduino::unlock();
+        //arduino::unlock();
     }
 
 }
@@ -423,7 +423,7 @@ void lwipClient::close_pcb() {
         err_t err = tcp_close(this->tcp_info->pcb);
 
         if(err != ERR_OK) {
-            DEBUG_INFO("ERR on pcb close %d", err);
+            return;
         }
         this->tcp_info->state = TCP_CLOSING;
 

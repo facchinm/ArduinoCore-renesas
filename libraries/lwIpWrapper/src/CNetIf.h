@@ -28,13 +28,7 @@
 #include "lwIP_Arduino.h"
 #endif
 
-//#define LWIP_USE_TIMER
-
-#ifdef LWIP_USE_TIMER
-#include "FspTimer.h"
-#else
-#include "Arduino_FreeRTOS.h"
-#endif
+#include "utils.h"
 
 #define MAX_SOFAT_CONNECTION_DEF 5
 
@@ -444,7 +438,7 @@ private:
     friend class CWifiStation;
 public:
 #ifdef LWIP_USE_TIMER
-    FspTimer timer;
+    static FspTimer timer;
 
     inline void syncTimer() {
         timer.disable_overflow_irq();
@@ -454,9 +448,14 @@ public:
         timer.enable_overflow_irq();
     }
 #else // LWIP_USE_TIMER
-    inline void syncTimer() { }
+    bool run_task = true;
+    inline void syncTimer() {
+        run_task = false;
+    }
 
-    inline void enableTimer() { }
+    inline void enableTimer() {
+        run_task = true;
+    }
 #endif // LWIP_USE_TIMER
 };
 

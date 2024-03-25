@@ -22,8 +22,8 @@ err_t _netif_output(struct netif* ni, struct pbuf* p);
 static void _getHostByNameCBK(const char *name, const ip_addr_t *ipaddr, void *callback_arg);
 #endif // LWIP_DNS
 
-#ifdef LWIP_USE_TIMER
 static void timer_cb(timer_callback_args_t* arg);
+#ifdef LWIP_USE_TIMER
 FspTimer CLwipIf::timer;
 #endif // LWIP_USE_TIMER
 
@@ -114,28 +114,21 @@ CLwipIf::CLwipIf() {
     timer.setup_overflow_irq();
     timer.open();
     timer.start();
-#else
-    static TaskHandle_t timer_task;
-    void timer_task_func(void* arg);
-    auto const timer_rc = xTaskCreate
-    (
-      timer_task_func,
-      static_cast<const char*>("Timer Thread"),
-      512 / 4,     /* usStackDepth in words */
-      nullptr,     /* pvParameters */
-      3,           /* uxPriority */
-      &timer_task /* pxCreatedTask */
-    );
 #endif
 }
 
-#ifdef LWIP_USE_TIMER
+void timer_cb_forever(void* arg) {
+    while (1) {
+        CLwipIf::getInstance().task();
+        delay(10);
+    }
+}
+
 static void timer_cb(timer_callback_args_t* arg) {
     CLwipIf* context = (CLwipIf*)arg->p_context;
 
     context->task();
 }
-#endif
 
 void CLwipIf::task() {
     for(CNetIf* iface: this->ifaces) {
@@ -160,6 +153,18 @@ void CLwipIf::add_iface(CNetIf* iface) {
         timer.setup_overflow_irq();
         timer.open();
         timer.start();
+#else
+        static TaskHandle_t timer_task;
+        void timer_cb_forever(void*);
+        auto const timer_rc = xTaskCreate
+        (
+            timer_cb_forever,
+            static_cast<const char*>("Timer Thread"),
+            512/4,     /* usStackDepth in words */
+            this,     /* pvParameters */
+            4,           /* uxPriority */
+            &timer_task /* pxCreatedTask */
+        );
 #endif
     }
 

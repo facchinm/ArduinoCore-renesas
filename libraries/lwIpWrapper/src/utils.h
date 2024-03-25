@@ -2,6 +2,13 @@
 #include <Arduino.h>
 #include "lwip/ip_addr.h"
 
+//#define LWIP_USE_TIMER
+
+#include "FspTimer.h"
+#ifndef LWIP_USE_TIMER
+#include "Arduino_FreeRTOS.h"
+#endif
+
 inline ip_addr_t fromArduinoIP(const IPAddress& ip) {
 #if LWIP_IPV4
     ip_addr_t res;
@@ -67,12 +74,26 @@ inline IPAddress toArduinoIP(const ip_addr_t* ip) {
 namespace arduino {
     // TODO leverage on RAII
     inline volatile uint32_t lock_counter;
+    #ifndef LWIP_USE_TIMER
+    inline SemaphoreHandle_t mutex = nullptr;
+    #endif
+
     inline void lock() {
+        #ifdef LWIP_USE_TIMER
         __disable_irq();
         lock_counter++; // This action breaks everything
+        #else
+        //if (xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) {
+            if (mutex == nullptr) {
+                mutex = xSemaphoreCreateBinary();
+            }
+            xSemaphoreTake(mutex, 10);
+        //}
+        #endif
     }
 
     inline void unlock() {
+        #ifdef LWIP_USE_TIMER
         if(lock_counter > 0) {
             lock_counter--;
         }
@@ -80,5 +101,10 @@ namespace arduino {
         if(lock_counter == 0) {
             __enable_irq(); // this could be called multiple times if the calls are not setup properly
         }
+        #else
+        //if (xTaskGetSchedulerState() == taskSCHEDULER_RUNNING) {
+            xSemaphoreGive(mutex);
+        //}
+        #endif
     }
 }
