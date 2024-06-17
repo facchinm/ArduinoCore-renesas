@@ -12,6 +12,7 @@ FSP Configuration
     series: 6
     
   RA6M5 Family
+    Enable inline BSP IRQ functions: Enabled
     Security: Exceptions: Exception Response: Non-Maskable Interrupt
     Security: Exceptions: BusFault, HardFault, and NMI Target: Secure State
     Security: System Reset Request Accessibility: Secure State
@@ -24,6 +25,8 @@ FSP Configuration
     Security: SRAM Accessibility: Standby RAM: Regions 7-0 are all Secure.
     Security: BUS Accessibility: Bus Security Attribution Register A: Both Secure and Non-Secure State
     Security: BUS Accessibility: Bus Security Attribution Register B: Both Secure and Non-Secure State
+    Security: Flash Bank Select Accessibility: Both Secure and Non-Secure State
+    Security: Uninitialized Non-Secure Application Fallback: Enable Uninitialized Non-Secure Application Fallback
     Startup C-Cache Line Size: 32 Bytes
     OFS0 register settings: Independent WDT: Start Mode: IWDT is Disabled
     OFS0 register settings: Independent WDT: Timeout Period: 2048 cycles
@@ -39,6 +42,8 @@ FSP Configuration
     OFS0 register settings: WDT: Window Start Position: 100% (no window start position)
     OFS0 register settings: WDT: Reset Interrupt Request: Reset
     OFS0 register settings: WDT: Stop Control: Stop counting when entering Sleep mode
+    OFS1_SEL register settings: Voltage Detection 0 Level Security Attribution: VDSEL setting loads from OFS1_SEC
+    OFS1_SEL register settings: Voltage Detection 0 Circuit Start Security Attribution: LVDAS setting loads from OFS1_SEC
     OFS1 register settings: Voltage Detection 0 Circuit Start: Voltage monitor 0 reset is disabled after reset
     OFS1 register settings: Voltage Detection 0 Level: 2.80 V
     OFS1 register settings: HOCO Oscillation Enable: HOCO oscillation is disabled after reset
@@ -52,6 +57,7 @@ FSP Configuration
     Clocks: HOCO FLL Function: Disabled
     Main Oscillator Wait Time: 8163 cycles
     
+  RA6M5 event data
   RA Common
     Main stack size (bytes): 0x1000
     Heap size (bytes): 0x1000
@@ -81,20 +87,24 @@ FSP Configuration
     Clock Src: PLL
     CLKOUT Disabled
     UCLK Src: PLL2
+    U60CK Disabled
     OCTASPICLK Disabled
-    CANFDCLK Src: XTAL
+    CANFDCLK Disabled
+    CECCLK Disabled
     ICLK Div /1
     PCLKA Div /2
     PCLKB Div /4
     PCLKC Div /4
     PCLKD Div /2
     BCLK Div /2
-    BCLK/2
+    EBCLK Div /2
     FCLK Div /4
     CLKOUT Div /1
     UCLK Div /5
+    U60CK Div /1
     OCTASPICLK Div /1
     CANFDCLK Div /1
+    CECCLK Div /1
     
   Pin Configurations
     R7FA6M5AG2CBG.pincfg -> g_bsp_pin_cfg
@@ -199,7 +209,7 @@ FSP Configuration
       P606 J1 - - - - Disabled - - "RTC0: RTCOUT; SCI8: CTSRTS8" - None - - 
       P607 J4 - - - - Disabled - - "SCI8: RXD8; SCI8: SCL8" - None - - 
       P608 D2 - - - - Disabled - - "BUS_ASYNCH0: A00; GPT4: GTIOC4B" - None - - 
-      P609 D1 - - - - Disabled - - "AGT5: AGTO5; BUS_ASYNCH0: CS1; CAN1: CTX1; GPT5: GTIOC5A" - None - - 
+      P609 D1 - - - - Disabled - - "AGT5: AGTO5; BUS_ASYNCH0: CS1; CAN1: CTX1; GPT5: GTIOC5A; OSPI0: OMECS" - None - - 
       P610 F3 - - - - Disabled - - "AGT4: AGTO4; BUS_ASYNCH0: CS0; CAN1: CRX1; GPT5: GTIOC5B; OSPI0: OMCS0; SCI7: CTS7" - None - - 
       P611 E2 - - - - Disabled - - "AGT3: AGTO3; CAC0: CACREF; CGC0: CLKOUT; SCI7: CTSRTS7" - None - - 
       P612 E1 - - - - Disabled - - "AGT2: AGTO2; BUS_ASYNCH0: D08; SCI7: SCK7" - None - - 
@@ -290,17 +300,16 @@ FSP Configuration
     
   Module "CAN FD (r_canfd)"
     Parameter Checking: Enabled
-    Global Error Interrupt: Priority: Priority 12
-    Global Error Interrupt: Sources: 
     Global Error Interrupt: Callback Channel: Channel 1
+    Global Error Interrupt: Priority: Priority 12
+    Reception: FIFOs: Interrupt Priority: Priority 12
+    Flexible Data (FD): Protocol Exceptions: Enabled (ISO 11898-1)
+    Global Error Interrupt: Sources: 
     Transmission Priority: Buffer Number
     DLC Check: Disabled
-    Flexible Data (FD): FD Frame Format: ISO 11898-1
-    Flexible Data (FD): Protocol Exceptions: Enabled (ISO 11898-1)
     Flexible Data (FD): Payload Overflow: Reject
     Reception: Message Buffers: Number of Buffers: 2
     Reception: Message Buffers: Payload Size: 8 bytes
-    Reception: FIFOs: Interrupt Priority: Priority 12
     Reception: FIFOs: FIFO 0: Enable: Enabled
     Reception: FIFOs: FIFO 0: Interrupt Mode: Every Frame
     Reception: FIFOs: FIFO 0: Interrupt Threshold: 1/2 full
@@ -341,8 +350,80 @@ FSP Configuration
     Reception: FIFOs: FIFO 7: Interrupt Threshold: 1/2 full
     Reception: FIFOs: FIFO 7: Payload Size: 8 bytes
     Reception: FIFOs: FIFO 7: Depth: 16 stages
-    Reception: Acceptance Filtering: Channel 0 Rule Count: 1
-    Reception: Acceptance Filtering: Channel 1 Rule Count: 1
+    Common FIFOs: FIFO 0: Enable: Disabled
+    Common FIFOs: FIFO 0: Mode: Receive
+    Common FIFOs: FIFO 0: RX Interrupt Enable: Disabled
+    Common FIFOs: FIFO 0: TX Interrupt Enable: Disabled
+    Common FIFOs: FIFO 0: Interrupt Mode: At Threshold Value
+    Common FIFOs: FIFO 0: Interrupt Threshold: 1/2 full
+    Common FIFOs: FIFO 0: Payload Size: 8 bytes
+    Common FIFOs: FIFO 0: Depth: 16 stages
+    Common FIFOs: FIFO 0: TX Message Buffer: 0
+    Common FIFOs: FIFO 0: Interval TX Delay: 0
+    Common FIFOs: FIFO 0: Interval Timer: Reference clock
+    Common FIFOs: FIFO 0: Interval Timer Reference Clock Resolution: x1
+    Common FIFOs: FIFO 1: Enable: Disabled
+    Common FIFOs: FIFO 1: Mode: Receive
+    Common FIFOs: FIFO 1: RX Interrupt Enable: Disabled
+    Common FIFOs: FIFO 1: TX Interrupt Enable: Disabled
+    Common FIFOs: FIFO 1: Interrupt Mode: At Threshold Value
+    Common FIFOs: FIFO 1: Interrupt Threshold: 1/2 full
+    Common FIFOs: FIFO 1: Payload Size: 8 bytes
+    Common FIFOs: FIFO 1: Depth: 16 stages
+    Common FIFOs: FIFO 1: TX Message Buffer: 0
+    Common FIFOs: FIFO 1: Interval TX Delay: 0
+    Common FIFOs: FIFO 1: Interval Timer: Reference clock
+    Common FIFOs: FIFO 1: Interval Timer Reference Clock Resolution: x1
+    Common FIFOs: FIFO 2: Enable: Disabled
+    Common FIFOs: FIFO 2: Mode: Receive
+    Common FIFOs: FIFO 2: RX Interrupt Enable: Disabled
+    Common FIFOs: FIFO 2: TX Interrupt Enable: Disabled
+    Common FIFOs: FIFO 2: Interrupt Mode: At Threshold Value
+    Common FIFOs: FIFO 2: Interrupt Threshold: 1/2 full
+    Common FIFOs: FIFO 2: Payload Size: 8 bytes
+    Common FIFOs: FIFO 2: Depth: 16 stages
+    Common FIFOs: FIFO 2: TX Message Buffer: 0
+    Common FIFOs: FIFO 2: Interval TX Delay: 0
+    Common FIFOs: FIFO 2: Interval Timer: Reference clock
+    Common FIFOs: FIFO 2: Interval Timer Reference Clock Resolution: x1
+    Common FIFOs: FIFO 3: Enable: Disabled
+    Common FIFOs: FIFO 3: Mode: Receive
+    Common FIFOs: FIFO 3: RX Interrupt Enable: Disabled
+    Common FIFOs: FIFO 3: TX Interrupt Enable: Disabled
+    Common FIFOs: FIFO 3: Interrupt Mode: At Threshold Value
+    Common FIFOs: FIFO 3: Interrupt Threshold: 1/2 full
+    Common FIFOs: FIFO 3: Payload Size: 8 bytes
+    Common FIFOs: FIFO 3: Depth: 16 stages
+    Common FIFOs: FIFO 3: TX Message Buffer: 0
+    Common FIFOs: FIFO 3: Interval TX Delay: 0
+    Common FIFOs: FIFO 3: Interval Timer: Reference clock
+    Common FIFOs: FIFO 3: Interval Timer Reference Clock Resolution: x1
+    Common FIFOs: FIFO 4: Enable: Disabled
+    Common FIFOs: FIFO 4: Mode: Receive
+    Common FIFOs: FIFO 4: RX Interrupt Enable: Disabled
+    Common FIFOs: FIFO 4: TX Interrupt Enable: Disabled
+    Common FIFOs: FIFO 4: Interrupt Mode: At Threshold Value
+    Common FIFOs: FIFO 4: Interrupt Threshold: 1/2 full
+    Common FIFOs: FIFO 4: Payload Size: 8 bytes
+    Common FIFOs: FIFO 4: Depth: 16 stages
+    Common FIFOs: FIFO 4: TX Message Buffer: 0
+    Common FIFOs: FIFO 4: Interval TX Delay: 0
+    Common FIFOs: FIFO 4: Interval Timer: Reference clock
+    Common FIFOs: FIFO 4: Interval Timer Reference Clock Resolution: x1
+    Common FIFOs: FIFO 5: Enable: Disabled
+    Common FIFOs: FIFO 5: Mode: Receive
+    Common FIFOs: FIFO 5: RX Interrupt Enable: Disabled
+    Common FIFOs: FIFO 5: TX Interrupt Enable: Disabled
+    Common FIFOs: FIFO 5: Interrupt Mode: At Threshold Value
+    Common FIFOs: FIFO 5: Interrupt Threshold: 1/2 full
+    Common FIFOs: FIFO 5: Payload Size: 8 bytes
+    Common FIFOs: FIFO 5: Depth: 16 stages
+    Common FIFOs: FIFO 5: TX Message Buffer: 0
+    Common FIFOs: FIFO 5: Interval TX Delay: 0
+    Common FIFOs: FIFO 5: Interval Timer: Reference clock
+    Common FIFOs: FIFO 5: Interval Timer Reference Clock Resolution: x1
+    Reception: Acceptance Filtering: Channel 0 Rule Count: 2
+    Reception: Acceptance Filtering: Channel 1 Rule Count: 2
     
   Module "I2C Master (r_iic_master)"
     Parameter Checking: Default (BSP)
@@ -356,6 +437,7 @@ FSP Configuration
     
   Module "I2C Slave (r_iic_slave)"
     Parameter Checking: Default (BSP)
+    DTC on Transmission and Reception: Disabled
     
   Module "I2S (r_ssi)"
     Parameter Checking: Default (BSP)
@@ -393,6 +475,7 @@ FSP Configuration
     Standby Limit: Disabled
     
   Module "SCE Protected Mode"
+    Initialization: Support all cryptographic operations
     RSA: RSA key generation retry count: 10240
     Hash: SHA-384: User Implementation (Software): Disabled
     Hash: SHA-384: User Implementation Function: crypto_sha384_user_function
@@ -408,13 +491,13 @@ FSP Configuration
     
   Module "Flash (r_flash_hp)"
     Parameter Checking: Default (BSP)
-    Code Flash Programming Enable: Disabled
+    Code Flash Programming Enable: Enabled
     Data Flash Programming Enable: Enabled
     
   Module "USB PCDC (r_usb_pcdc)"
     Bulk In Pipe: USB PIPE1
     Bulk Out Pipe: USB PIPE2
-    Interrupt Out Pipe: USB PIPE6
+    Interrupt In Pipe: USB PIPE6
     
   Module "USB (r_usb_basic)"
     Parameter Checking: Default (BSP)
@@ -448,7 +531,6 @@ FSP Configuration
     Parameter Checking: Default (BSP)
     Pin Output Support: Enabled with Extra Features
     Write Protect Enable: Disabled
-    Clock Source: PCLKD
     
   Module "Timer, Low-Power (r_agt)"
     Parameter Checking: Default (BSP)
@@ -462,12 +544,13 @@ FSP Configuration
     
   Module "Ethernet (r_ether_phy)"
     Parameter Checking: Default (BSP)
-    Select PHY(DEPRECATED): Default
-    KSZ8091RNZ Target: Disabled
+    KSZ8091RNB Target: Disabled
     KSZ8041 Target: Disabled
     DP83620 Target: Disabled
     ICS1894 Target: Disabled
+    User Own Target: Disabled
     Reference Clock: Default
+    Automatic Phy LSI Initialization: Enabled
     
   Module "QSPI (r_qspi)"
     Parameter Checking: Default (BSP)
@@ -482,14 +565,10 @@ FSP Configuration
   HAL
     Instance "g_ioport I/O Port (r_ioport)"
       Name: g_ioport
-      Port 1 ELC Trigger Source: Disabled
-      Port 2 ELC Trigger Source: Disabled
-      Port 3 ELC Trigger Source: Disabled
-      Port 4 ELC Trigger Source: Disabled
-      Port B ELC Trigger Source: Disabled
-      Port C ELC Trigger Source: Disabled
-      Port D ELC Trigger Source: Disabled
-      Port E ELC Trigger Source: Disabled
+      1st Port ELC Trigger Source: Disabled
+      2nd Port ELC Trigger Source: Disabled
+      3rd Port ELC Trigger Source: Disabled
+      4th Port ELC Trigger Source: Disabled
       Pin Configuration Name: g_bsp_pin_cfg
       
     Instance "g_adc0 ADC (r_adc)"
@@ -536,14 +615,15 @@ FSP Configuration
       Data Format: Right Justified
       Output Amplifier: Disabled
       Charge Pump (Requires MOCO active): Disabled
-      Internal Output: Enabled by default
+      Internal Output: Not Supported
       ELC Trigger Source: Disabled
+      Reference Voltage: Not supported
       
     Instance "g_canfd0 CAN FD (r_canfd)"
       General: Name: g_canfd0
       General: Channel: 0
       Bitrate: Automatic: Nominal Rate (bps): 500000
-      Bitrate: Automatic: Data Rate (bps): 2000000
+      Bitrate: Automatic: FD Data Rate (bps): 2000000
       Bitrate: Automatic: Sample Point (%): 75
       Bitrate: Delay Compensation: Enable
       Bitrate: Manual: Nominal: Prescaler (divisor): 1
@@ -609,8 +689,8 @@ FSP Configuration
       Bit Depth: 16 Bits
       Word Length: 16 Bits
       WS Continue Mode: Disabled
-      Bit Clock Source: External AUDIO_CLK
-      Bit Clock Divider: Audio Clock / 1
+      Bit Clock Source(available only in Master mode): External AUDIO_CLK
+      Bit Clock Divider(available only in Master mode): Audio Clock / 1
       Callback: NULL
       Transmit Interrupt Priority: Priority 2
       Receive Interrupt Priority: Disabled
@@ -623,11 +703,10 @@ FSP Configuration
         Destination Address Mode: Fixed
         Source Address Mode: Incremented
         Repeat Area (Unused in Normal Mode): Source
-        Destination Pointer: NULL
-        Source Pointer: NULL
         Interrupt Frequency: After all transfers have completed
         Number of Transfers: 0
         Number of Blocks (Valid only in Block Mode): 0
+        Number of Transfer Descriptors: 1
         Activation Source: SSI0 TXI (Transmit data empty)
         
     Instance "g_spi0 SPI (r_sci_spi)"
@@ -653,11 +732,10 @@ FSP Configuration
         Destination Address Mode: Fixed
         Source Address Mode: Incremented
         Repeat Area (Unused in Normal Mode): Source
-        Destination Pointer: NULL
-        Source Pointer: NULL
         Interrupt Frequency: After all transfers have completed
         Number of Transfers: 0
         Number of Blocks (Valid only in Block Mode): 0
+        Number of Transfer Descriptors: 1
         Activation Source: SCI0 TXI (Transmit data empty)
         
       Instance "g_transfer2 Transfer (r_dtc) SCI0 RXI (Receive data full)"
@@ -667,11 +745,10 @@ FSP Configuration
         Destination Address Mode: Incremented
         Source Address Mode: Fixed
         Repeat Area (Unused in Normal Mode): Destination
-        Destination Pointer: NULL
-        Source Pointer: NULL
         Interrupt Frequency: After all transfers have completed
         Number of Transfers: 0
         Number of Blocks (Valid only in Block Mode): 0
+        Number of Transfer Descriptors: 1
         Activation Source: SCI0 RXI (Receive data full)
         
     Instance "g_spi1 SPI (r_spi)"
@@ -706,11 +783,10 @@ FSP Configuration
         Destination Address Mode: Fixed
         Source Address Mode: Incremented
         Repeat Area (Unused in Normal Mode): Source
-        Destination Pointer: NULL
-        Source Pointer: NULL
         Interrupt Frequency: After all transfers have completed
         Number of Transfers: 0
         Number of Blocks (Valid only in Block Mode): 0
+        Number of Transfer Descriptors: 1
         Activation Source: SPI0 TXI (Transmit buffer empty)
         
       Instance "g_transfer4 Transfer (r_dtc) SPI0 RXI (Receive buffer full)"
@@ -720,11 +796,10 @@ FSP Configuration
         Destination Address Mode: Incremented
         Source Address Mode: Fixed
         Repeat Area (Unused in Normal Mode): Destination
-        Destination Pointer: NULL
-        Source Pointer: NULL
         Interrupt Frequency: After all transfers have completed
         Number of Transfers: 0
         Number of Blocks (Valid only in Block Mode): 0
+        Number of Transfer Descriptors: 1
         Activation Source: SPI0 RXI (Receive buffer full)
         
     Instance "g_uart0 UART (r_sci_uart)"
@@ -774,7 +849,7 @@ FSP Configuration
           USBHS Interrupt Priority: Priority 12
           USBHS D0FIFO Interrupt Priority: Priority 12
           USBHS D1FIFO Interrupt Priority: Priority 12
-          USB RTOS Callback: NULL
+          USB Callback: NULL
           USB Callback Context: NULL
           
     Instance "g_external_irq0 External IRQ (r_icu)"
@@ -790,19 +865,28 @@ FSP Configuration
       Name: g_crc0
       CRC Polynomial: CRC-32C
       Bit Order: MSB
-      Snoop Address: NONE
+      Snoop Address: Not Supported
       
     Instance "g_lpm0 Low Power Modes (r_lpm)"
       General: Name: g_lpm0
       General: Low Power Mode: Sleep mode
       General: Output port state in standby and deep standby: No change
-      Standby Options: Wake Sources: 
-      Standby Options: Snooze Request Source: RXD0 falling edge
-      Standby Options: Snooze End Sources: 
-      Standby Options: DTC state in Snooze Mode: Disabled
-      Standby Options: Snooze Cancel Source: None
+      General: Supply of SOSC clock to peripheral function in standby: Not Supported
+      General: Startup speed of the HOCO in Standby and Snooze modes: Not Supported
+      General: Flash mode in sleep or snooze: Not Supported
+      Deep Sleep and Standby Options: Wake Sources: 
+      Deep Sleep and Standby Options: Snooze Options (Not available on every MCU): Snooze Request Source: RXD0 falling edge
+      Deep Sleep and Standby Options: Snooze Options (Not available on every MCU): Snooze End Sources: 
+      Deep Sleep and Standby Options: Snooze Options (Not available on every MCU): DTC state in Snooze Mode: Disabled
+      Deep Sleep and Standby Options: Snooze Options (Not available on every MCU): Snooze Cancel Source: None
+      RAM Retention Control (Not available on every MCU): RAM retention in Standby mode: 
+      RAM Retention Control (Not available on every MCU): TCM retention in Deep Sleep and Standby modes: Not Supported
+      RAM Retention Control (Not available on every MCU): Standby RAM retention in Standby and Deep Standby modes: Not Supported
+      Oscillator LDO Control (Not available on every MCU): PLL1 LDO State in standby mode: Not Supported
+      Oscillator LDO Control (Not available on every MCU): PLL2 LDO State in standby mode: Not Supported
+      Oscillator LDO Control (Not available on every MCU): HOCO LDO State in standby mode: Not Supported
       Deep Standby Options: I/O Port Retention: Maintain the IO port states
-      Deep Standby Options: Power-Supply Control: Supply power to the Standby SRAM, low-speed on-chip oscillator, AGTn (n = 0-3) and USBFS/HS resume detecting unit
+      Deep Standby Options: Power-Supply Control: Supply power to the Standby RAM, low-speed on-chip oscillator, AGTn (n = 0-3) and USBFS/HS resume detecting unit
       Deep Standby Options: Cancel Sources: 
       Deep Standby Options: Cancel Edges: 
       
@@ -811,7 +895,15 @@ FSP Configuration
       
     Instance "g_cgc0 Clock Generation Circuit (r_cgc)"
       Name: g_cgc0
-      NMI Callback: NULL
+      Enable main oscillator stop detection via the NMI interrupt: Enabled
+      Oscillation Stop Detection Callback: NULL
+      Sub Clock Oscillation Stop Detection Settings: Enable sub clock oscillator stop detection via the SOSC_STOP interrupt: Disabled
+      Sub Clock Oscillation Stop Detection Settings: Sub Clock Oscillation Stop Detection Time: 0
+      Sub Clock Oscillation Stop Detection Settings: Sub Clock Oscillation Stop Detection Interrupt Priority: Disabled
+      Main Oscillation Stop Detection Settings: Enable main clock oscillator stop detection via the MOSC_STOP interrupt: Disabled
+      Main Oscillation Stop Detection Settings: Main Oscillation Stop Detection Time: 0
+      Main Oscillation Stop Detection Settings: Main Oscillation Stop Detection Interrupt Priority: Disabled
+      Oscillator Stop Detection Settings: Clock Switch Enable for Oscillation Stop Detected of SDADCCLK: Disabled
       
     Instance "g_elc Event Link Controller (r_elc)"
       Name: g_elc
@@ -824,31 +916,27 @@ FSP Configuration
       Destination Address Mode: Fixed
       Source Address Mode: Fixed
       Repeat Area (Unused in Normal Mode): Source
-      Destination Pointer: NULL
-      Source Pointer: NULL
       Number of Transfers: 1
       Number of Blocks (Valid only in Repeat,Block or Repeat-Block Mode): 0
       Activation Source: No ELC Trigger
       Callback: NULL
-      Context: NULL
       Transfer End Interrupt Priority: Disabled
       Interrupt Frequency: Interrupt after all transfers have completed
       Offset value (Valid only when address mode is \'Offset\'): 1
       Source Buffer Size: 1
       
-    Instance "g_transfer6 Transfer (r_dtc) SPI0 ERI (Error)"
+    Instance "g_transfer6 Transfer (r_dtc) Disabled"
       Name: g_transfer6
       Mode: Normal
       Transfer Size: 2 Bytes
       Destination Address Mode: Fixed
       Source Address Mode: Fixed
       Repeat Area (Unused in Normal Mode): Source
-      Destination Pointer: NULL
-      Source Pointer: NULL
       Interrupt Frequency: After all transfers have completed
       Number of Transfers: 0
       Number of Blocks (Valid only in Block Mode): 0
-      Activation Source: SPI0 ERI (Error)
+      Number of Transfer Descriptors: 1
+      Activation Source: Disabled
       
     Instance "g_flash0 Flash (r_flash_hp)"
       Name: g_flash0
@@ -864,8 +952,8 @@ FSP Configuration
       Name: g_wdt0
       Timeout: 16,384 Cycles
       Clock Division Ratio: PCLK/8192
-      Window Start Position: 100% (Window Position Not Specified)
-      Window End Position: 0% (Window Position Not Specified)
+      Window Start Position: 100 (Window Position Not Specified)
+      Window End Position: 0 (Window Position Not Specified)
       Reset Control: Reset Output
       Stop Control: WDT Count Disabled in Low Power Mode
       NMI Callback: NULL
@@ -888,6 +976,10 @@ FSP Configuration
       General: Channel: 0
       General: Mode: Periodic
       General: Period: 0x100000000
+      General: Compare Match: Compare Match A: Status: Disabled
+      General: Compare Match: Compare Match A: Compare match value: 0
+      General: Compare Match: Compare Match B: Status: Disabled
+      General: Compare Match: Compare Match B: Compare match value: 0
       General: Period Unit: Raw Counts
       Output: Custom Waveform: GTIOA: Initial Output Level: Pin Level Low
       Output: Custom Waveform: GTIOA: Cycle End Output Level: Pin Level Retain
@@ -914,17 +1006,17 @@ FSP Configuration
       Input: Noise Filter B Sampling Clock Select: No Filter
       Interrupts: Callback: NULL
       Interrupts: Overflow/Crest Interrupt Priority: Disabled
-      Interrupts: Capture A Interrupt Priority: Disabled
-      Interrupts: Capture B Interrupt Priority: Disabled
+      Interrupts: Capture/Compare match A Interrupt Priority: Disabled
+      Interrupts: Capture/Compare match B Interrupt Priority: Disabled
       Interrupts: Underflow/Trough Interrupt Priority: Disabled
       Extra Features: Extra Features: Disabled
       Extra Features: Output Disable: POEG Link: POEG Channel 0
       Extra Features: Output Disable: Output Disable POEG Trigger: 
       Extra Features: ADC Trigger: Start Event Trigger (Channels with GTINTAD only): 
-      Extra Features: Dead Time: Dead Time Count Up (Raw Counts): 0
-      Extra Features: Dead Time: Dead Time Count Down (Raw Counts) (Channels with GTDVD only): 0
-      Extra Features: ADC Trigger (Channels with GTADTRA only): ADC A Compare Match (Raw Counts): 0
-      Extra Features: ADC Trigger (Channels with GTADTRB only): ADC B Compare Match (Raw Counts): 0
+      Extra Features: ADC Trigger: ADC A Compare Match (Raw Counts): 0
+      Extra Features: ADC Trigger: ADC B Compare Match (Raw Counts): 0
+      Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Up (Raw Counts): 0
+      Extra Features: Dead Time (Value range varies with Channel): Dead Time Count Down (Raw Counts) (Channels with GTDVD only): 0
       Extra Features: Interrupt Skipping (Channels with GTITC only): Interrupt to Count: None
       Extra Features: Interrupt Skipping (Channels with GTITC only): Interrupt Skip Count: 0
       Extra Features: Interrupt Skipping (Channels with GTITC only): Skip ADC Events: None
@@ -933,6 +1025,7 @@ FSP Configuration
       
     Instance "g_timer1 Timer, Low-Power (r_agt)"
       General: Name: g_timer1
+      General: Counter Bit Width: AGT 16-bit
       General: Channel: 0
       General: Mode: Periodic
       General: Period: 0x10000
@@ -974,6 +1067,8 @@ FSP Configuration
         PHY-LSI Reset Completion Timeout: 0x00020000
         Select MII type: RMII
         Phy LSI type: Kit Component
+        Port Custom Init Function: NULL
+        Port Custom Link Partner Ability Get Function: NULL
         MII/RMII Register Access Wait-time: 8
         Flow Control: Disable
         
@@ -1020,10 +1115,9 @@ FSP Configuration
         Destination Address Mode: Fixed
         Source Address Mode: Incremented
         Repeat Area (Unused in Normal Mode): Source
-        Destination Pointer: NULL
-        Source Pointer: NULL
         Interrupt Frequency: After all transfers have completed
         Number of Transfers: 128
         Number of Blocks (Valid only in Block Mode): 0
+        Number of Transfer Descriptors: 1
         Activation Source: SDHIMMC0 DMA REQ (DMA transfer request)
         

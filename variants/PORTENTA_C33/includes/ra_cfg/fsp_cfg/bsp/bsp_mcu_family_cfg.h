@@ -27,7 +27,7 @@ extern "C" {
 
 #define BSP_CORTEX_VECTOR_TABLE_ENTRIES    (16U)
 #define BSP_VECTOR_TABLE_MAX_ENTRIES       (112U)
-#define BSP_MCU_VBATT_SUPPORT              (1)
+#define BSP_CFG_INLINE_IRQ_FUNCTIONS       (1)
 
 #if defined(_RA_TZ_SECURE)
             #define BSP_TZ_SECURE_BUILD           (1)
@@ -101,7 +101,7 @@ extern "C" {
             (((1 > 0) ? 0U : 1U) << 8) /* SSIE0 */ | \
             (((1 > 0) ? 0U : 1U) << 12) /* SDHI0 */ | \
             (((RA_NOT_DEFINED > 0) ? 0U : 1U) << 13) /* DOC */ | \
-            (((RA_NOT_DEFINED > 0) ? 0U : 1U) << 31) /* SCE9 */ | \
+            (((1 > 0) ? 0U : 1U) << 31) /* SCE9 */ | \
             0x7fffcef4) /* Unused */
 #endif
 #ifndef BSP_TZ_CFG_PSARD
@@ -298,6 +298,11 @@ extern "C" {
 #define BSP_TZ_CFG_BUSSARB (0xFFFFFFFFU)
 #endif
 
+/* Enable Uninitialized Non-Secure Application Fallback. */
+#ifndef BSP_TZ_CFG_NON_SECURE_APPLICATION_FALLBACK
+#define BSP_TZ_CFG_NON_SECURE_APPLICATION_FALLBACK (1U)
+#endif
+
 #define OFS_SEQ1 0xA001A001 | (1 << 1) | (3 << 2)
 #define OFS_SEQ2 (15 << 4) | (3 << 8) | (3 << 10)
 #define OFS_SEQ3 (1 << 12) | (1 << 14) | (1 << 17)
@@ -308,7 +313,7 @@ extern "C" {
 /* Option Function Select Register 1 Security Attribution */
 #ifndef BSP_CFG_ROM_REG_OFS1_SEL
 #if defined(_RA_TZ_SECURE) || defined(_RA_TZ_NONSECURE)
-            #define BSP_CFG_ROM_REG_OFS1_SEL (0xFFFFF8F8U | ((BSP_CFG_CLOCKS_SECURE == 0) ? 0x700U : 0U) | ((RA_NOT_DEFINED > 0) ? 0U : 0x7U))
+            #define BSP_CFG_ROM_REG_OFS1_SEL (0xFFFFF8F8U | ((0U << 0U)) | ((0U << 2U)) | ((BSP_CFG_CLOCKS_SECURE == 0) ? 0x700U : 0U))
 #else
 #define BSP_CFG_ROM_REG_OFS1_SEL (0xFFFFF8F8U)
 #endif
@@ -336,6 +341,10 @@ extern "C" {
 #ifndef BSP_CFG_ROM_REG_BPS2
 #define BSP_CFG_ROM_REG_BPS2 (~( 0U))
 #endif
+/* Block Protection Register 3 */
+#ifndef BSP_CFG_ROM_REG_BPS3
+#define BSP_CFG_ROM_REG_BPS3 (0xFFFFFFFFU)
+#endif
 /* Permanent Block Protection Register 0 */
 #ifndef BSP_CFG_ROM_REG_PBPS0
 #define BSP_CFG_ROM_REG_PBPS0 (~( 0U))
@@ -348,6 +357,10 @@ extern "C" {
 #ifndef BSP_CFG_ROM_REG_PBPS2
 #define BSP_CFG_ROM_REG_PBPS2 (~( 0U))
 #endif
+/* Permanent Block Protection Register 3 */
+#ifndef BSP_CFG_ROM_REG_PBPS3
+#define BSP_CFG_ROM_REG_PBPS3 (0xFFFFFFFFU)
+#endif
 /* Security Attribution for Block Protection Register 0 (If any blocks are marked as protected in the secure application, then mark them as secure) */
 #ifndef BSP_CFG_ROM_REG_BPS_SEL0
 #define BSP_CFG_ROM_REG_BPS_SEL0 (BSP_CFG_ROM_REG_BPS0 & BSP_CFG_ROM_REG_PBPS0)
@@ -359,6 +372,14 @@ extern "C" {
 /* Security Attribution for Block Protection Register 2 (If any blocks are marked as protected in the secure application, then mark them as secure) */
 #ifndef BSP_CFG_ROM_REG_BPS_SEL2
 #define BSP_CFG_ROM_REG_BPS_SEL2 (BSP_CFG_ROM_REG_BPS2 & BSP_CFG_ROM_REG_PBPS2)
+#endif
+/* Security Attribution for Block Protection Register 3 (If any blocks are marked as protected in the secure application, then mark them as secure) */
+#ifndef BSP_CFG_ROM_REG_BPS_SEL3
+#define BSP_CFG_ROM_REG_BPS_SEL3 (BSP_CFG_ROM_REG_BPS3 & BSP_CFG_ROM_REG_PBPS3)
+#endif
+/* Security Attribution for Bank Select Register */
+#ifndef BSP_CFG_ROM_REG_BANKSEL_SEL
+#define BSP_CFG_ROM_REG_BANKSEL_SEL (0xFFFFFFFFU)
 #endif
 #ifndef BSP_CLOCK_CFG_MAIN_OSC_WAIT
 #define BSP_CLOCK_CFG_MAIN_OSC_WAIT (9)

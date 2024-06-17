@@ -1,25 +1,11 @@
-/***********************************************************************************************************************
- * Copyright [2020-2022] Renesas Electronics Corporation and/or its affiliates.  All Rights Reserved.
- *
- * This software and documentation are supplied by Renesas Electronics America Inc. and may only be used with products
- * of Renesas Electronics Corp. and its affiliates ("Renesas").  No other uses are authorized.  Renesas products are
- * sold pursuant to Renesas terms and conditions of sale.  Purchasers are solely responsible for the selection and use
- * of Renesas products and Renesas assumes no liability.  No license, express or implied, to any intellectual property
- * right is granted by Renesas. This software is protected under all applicable laws, including copyright laws. Renesas
- * reserves the right to change or discontinue this software and/or this documentation. THE SOFTWARE AND DOCUMENTATION
- * IS DELIVERED TO YOU "AS IS," AND RENESAS MAKES NO REPRESENTATIONS OR WARRANTIES, AND TO THE FULLEST EXTENT
- * PERMISSIBLE UNDER APPLICABLE LAW, DISCLAIMS ALL WARRANTIES, WHETHER EXPLICITLY OR IMPLICITLY, INCLUDING WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT, WITH RESPECT TO THE SOFTWARE OR
- * DOCUMENTATION.  RENESAS SHALL HAVE NO LIABILITY ARISING OUT OF ANY SECURITY VULNERABILITY OR BREACH.  TO THE MAXIMUM
- * EXTENT PERMITTED BY LAW, IN NO EVENT WILL RENESAS BE LIABLE TO YOU IN CONNECTION WITH THE SOFTWARE OR DOCUMENTATION
- * (OR ANY PERSON OR ENTITY CLAIMING RIGHTS DERIVED FROM YOU) FOR ANY LOSS, DAMAGES, OR CLAIMS WHATSOEVER, INCLUDING,
- * WITHOUT LIMITATION, ANY DIRECT, CONSEQUENTIAL, SPECIAL, INDIRECT, PUNITIVE, OR INCIDENTAL DAMAGES; ANY LOST PROFITS,
- * OTHER ECONOMIC DAMAGE, PROPERTY DAMAGE, OR PERSONAL INJURY; AND EVEN IF RENESAS HAS BEEN ADVISED OF THE POSSIBILITY
- * OF SUCH LOSS, DAMAGES, CLAIMS OR COSTS.
- **********************************************************************************************************************/
+/*
+* Copyright (c) 2020 - 2024 Renesas Electronics Corporation and/or its affiliates
+*
+* SPDX-License-Identifier: BSD-3-Clause
+*/
 
 /*******************************************************************************************************************//**
- * @ingroup RENESAS_INTERFACES
+ * @ingroup RENESAS_NETWORKING_INTERFACES
  * @defgroup ETHER_API Ethernet Interface
  * @brief Interface for Ethernet functions.
  *
@@ -33,8 +19,6 @@
  * - Flow control support
  * - Multicast filtering support
  *
- * Implemented by:
- * - @ref ETHER
  *
  * @{
  **********************************************************************************************************************/
@@ -104,14 +88,19 @@ typedef enum e_ether_padding
     ETHER_PADDING_3BYTE   = 3,
 } ether_padding_t;
 
+#ifndef BSP_OVERRIDE_ETHER_EVENT_T
+
 /** Event code of callback function */
-typedef enum
+typedef enum e_ether_event
 {
     ETHER_EVENT_WAKEON_LAN,            ///< Magic packet detection event
     ETHER_EVENT_LINK_ON,               ///< Link up detection event
     ETHER_EVENT_LINK_OFF,              ///< Link down detection event
     ETHER_EVENT_INTERRUPT,             ///< Interrupt event
 } ether_event_t;
+#endif
+
+#ifndef BSP_OVERRIDE_ETHER_CALLBACK_ARGS_T
 
 /** Callback function parameter data */
 typedef struct st_ether_callback_args
@@ -123,10 +112,9 @@ typedef struct st_ether_callback_args
 
     void const * p_context;            ///< Placeholder for user data.  Set in @ref ether_api_t::open function in @ref ether_cfg_t.
 } ether_callback_args_t;
+#endif
 
 /** Control block.  Allocate an instance specific control block to pass into the API calls.
- * @par Implemented as
- * - ether_instance_ctrl_t
  */
 typedef void ether_ctrl_t;
 
@@ -150,8 +138,8 @@ typedef struct st_ether_cfg
 
     uint32_t ether_buffer_size;                          ///< Size of transmit and receive buffer
 
-    IRQn_Type irq;                                       ///< NVIC interrupt number
-    uint32_t  interrupt_priority;                        ///< NVIC interrupt priority
+    IRQn_Type irq;                                       ///< Interrupt number
+    uint32_t  interrupt_priority;                        ///< Interrupt priority
 
     void (* p_callback)(ether_callback_args_t * p_args); ///< Callback provided when an ISR occurs.
 
@@ -166,83 +154,77 @@ typedef struct st_ether_cfg
 typedef struct st_ether_api
 {
     /** Open driver.
-     * @par Implemented as
-     * - @ref R_ETHER_Open()
      *
-     * @param[in]  p_api_ctrl       Pointer to control structure.
+     * @param[in]  p_ctrl       Pointer to control structure.
      * @param[in]  p_cfg        Pointer to pin configuration structure.
      */
-    fsp_err_t (* open)(ether_ctrl_t * const p_api_ctrl, ether_cfg_t const * const p_cfg);
+    fsp_err_t (* open)(ether_ctrl_t * const p_ctrl, ether_cfg_t const * const p_cfg);
 
     /** Close driver.
-     * @par Implemented as
-     * - @ref R_ETHER_Close()
      *
-     * @param[in]  p_api_ctrl       Pointer to control structure.
+     * @param[in]  p_ctrl       Pointer to control structure.
      */
-    fsp_err_t (* close)(ether_ctrl_t * const p_api_ctrl);
+    fsp_err_t (* close)(ether_ctrl_t * const p_ctrl);
 
     /** Read packet if data is available.
-     * @par Implemented as
-     * - @ref R_ETHER_Read()
      *
-     * @param[in]  p_api_ctrl       Pointer to control structure.
+     * @param[in]  p_ctrl       Pointer to control structure.
      * @param[in]  p_buffer     Pointer to where to store read data.
      * @param[in]  length_bytes Number of bytes in buffer
      */
-    fsp_err_t (* read)(ether_ctrl_t * const p_api_ctrl, void * const p_buffer, uint32_t * const length_bytes);
+    fsp_err_t (* read)(ether_ctrl_t * const p_ctrl, void * const p_buffer, uint32_t * const length_bytes);
 
     /** Release rx buffer from buffer pool process in zero-copy read operation.
-     * @par Implemented as
-     * - @ref R_ETHER_BufferRelease()
      *
-     * @param[in]  p_api_ctrl       Pointer to control structure.
+     * @param[in]  p_ctrl       Pointer to control structure.
      */
-    fsp_err_t (* bufferRelease)(ether_ctrl_t * const p_api_ctrl);
+    fsp_err_t (* bufferRelease)(ether_ctrl_t * const p_ctrl);
 
     /** Update the buffer pointer in the current receive descriptor.
-     * @par Implemented as
-     * - @ref R_ETHER_RxBufferUpdate()
      *
-     * @param[in]  p_api_ctrl       Pointer to control structure.
+     * @param[in]  p_ctrl           Pointer to control structure.
      * @param[in]  p_buffer         New address to write into the rx buffer descriptor.
      */
-    fsp_err_t (* rxBufferUpdate)(ether_ctrl_t * const p_api_ctrl, void * const p_buffer);
+    fsp_err_t (* rxBufferUpdate)(ether_ctrl_t * const p_ctrl, void * const p_buffer);
 
     /** Write packet.
-     * @par Implemented as
-     * - @ref R_ETHER_Write()
      *
-     * @param[in]  p_api_ctrl       Pointer to control structure.
+     * @param[in]  p_ctrl       Pointer to control structure.
      * @param[in]  p_buffer     Pointer to data to write.
      * @param[in]  frame_length Send ethernet frame size (without 4 bytes of CRC data size).
      */
-    fsp_err_t (* write)(ether_ctrl_t * const p_api_ctrl, void * const p_buffer, uint32_t const frame_length);
+    fsp_err_t (* write)(ether_ctrl_t * const p_ctrl, void * const p_buffer, uint32_t const frame_length);
 
     /** Process link.
-     * @par Implemented as
-     * - @ref R_ETHER_LinkProcess()
      *
-     * @param[in]  p_api_ctrl       Pointer to control structure.
+     * @param[in]  p_ctrl       Pointer to control structure.
      */
-    fsp_err_t (* linkProcess)(ether_ctrl_t * const p_api_ctrl);
+    fsp_err_t (* linkProcess)(ether_ctrl_t * const p_ctrl);
 
     /** Enable magic packet detection.
-     * @par Implemented as
-     * - @ref R_ETHER_WakeOnLANEnable()
      *
-     * @param[in]  p_api_ctrl       Pointer to control structure.
+     * @param[in]  p_ctrl       Pointer to control structure.
      */
-    fsp_err_t (* wakeOnLANEnable)(ether_ctrl_t * const p_api_ctrl);
+    fsp_err_t (* wakeOnLANEnable)(ether_ctrl_t * const p_ctrl);
 
     /** Get the address of the most recently sent buffer.
-     * @par Implemented as
-     * - @ref R_ETHER_TxStatusGet()
      *
-     * @param[in]   p_api_ctrl     Pointer to control structure.
+     * @param[in]   p_ctrl             Pointer to control structure.
      * @param[out]  p_buffer_address   Pointer to the address of the most recently sent buffer.
      */
-    fsp_err_t (* txStatusGet)(ether_ctrl_t * const p_api_ctrl, void * const p_buffer_address);
+    fsp_err_t (* txStatusGet)(ether_ctrl_t * const p_ctrl, void * const p_buffer_address);
+
+    /**
+     * Specify callback function and optional context pointer and working memory pointer.
+     *
+     * @param[in]   p_ctrl                   Pointer to the ETHER control block.
+     * @param[in]   p_callback               Callback function
+     * @param[in]   p_context                Pointer to send to callback function
+     * @param[in]   p_working_memory         Pointer to volatile memory where callback structure can be allocated.
+     *                                       Callback arguments allocated here are only valid during the callback.
+     */
+    fsp_err_t (* callbackSet)(ether_ctrl_t * const p_ctrl, void (* p_callback)(ether_callback_args_t *),
+                              void const * const p_context, ether_callback_args_t * const p_callback_memory);
 } ether_api_t;
 
 /** This structure encompasses everything that is needed to use an instance of this interface. */
@@ -254,7 +236,7 @@ typedef struct st_ether_instance
 } ether_instance_t;
 
 /*******************************************************************************************************************//**
- * @} (end addtogroup ETHER_API)
+ * @} (end defgroup ETHER_API)
  **********************************************************************************************************************/
 
 /* Common macro for FSP header files. There is also a corresponding FSP_HEADER macro at the top of this file. */

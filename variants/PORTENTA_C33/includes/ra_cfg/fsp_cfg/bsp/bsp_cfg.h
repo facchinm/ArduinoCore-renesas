@@ -18,6 +18,9 @@
 #define BSP_CFG_RTOS (0)
 #endif
 #endif
+#ifndef BSP_CFG_RTC_USED
+#define BSP_CFG_RTC_USED (1)
+#endif
 #undef RA_NOT_DEFINED
 #if defined(_RA_BOOT_IMAGE)
              #define BSP_CFG_BOOT_IMAGE (1)

@@ -48,6 +48,10 @@ extern const external_irq_cfg_t g_external_irq0_cfg;
 #ifndef NULL
 void NULL(external_irq_callback_args_t *p_args);
 #endif
+#define IOPORT_CFG_NAME g_bsp_pin_cfg
+#define IOPORT_CFG_OPEN R_IOPORT_Open
+#define IOPORT_CFG_CTRL g_ioport_ctrl
+
 /* IOPORT Instance */
 extern const ioport_instance_t g_ioport;
 

@@ -1,22 +1,8 @@
-/***********************************************************************************************************************
- * Copyright [2020-2022] Renesas Electronics Corporation and/or its affiliates.  All Rights Reserved.
- *
- * This software and documentation are supplied by Renesas Electronics America Inc. and may only be used with products
- * of Renesas Electronics Corp. and its affiliates ("Renesas").  No other uses are authorized.  Renesas products are
- * sold pursuant to Renesas terms and conditions of sale.  Purchasers are solely responsible for the selection and use
- * of Renesas products and Renesas assumes no liability.  No license, express or implied, to any intellectual property
- * right is granted by Renesas. This software is protected under all applicable laws, including copyright laws. Renesas
- * reserves the right to change or discontinue this software and/or this documentation. THE SOFTWARE AND DOCUMENTATION
- * IS DELIVERED TO YOU "AS IS," AND RENESAS MAKES NO REPRESENTATIONS OR WARRANTIES, AND TO THE FULLEST EXTENT
- * PERMISSIBLE UNDER APPLICABLE LAW, DISCLAIMS ALL WARRANTIES, WHETHER EXPLICITLY OR IMPLICITLY, INCLUDING WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT, WITH RESPECT TO THE SOFTWARE OR
- * DOCUMENTATION.  RENESAS SHALL HAVE NO LIABILITY ARISING OUT OF ANY SECURITY VULNERABILITY OR BREACH.  TO THE MAXIMUM
- * EXTENT PERMITTED BY LAW, IN NO EVENT WILL RENESAS BE LIABLE TO YOU IN CONNECTION WITH THE SOFTWARE OR DOCUMENTATION
- * (OR ANY PERSON OR ENTITY CLAIMING RIGHTS DERIVED FROM YOU) FOR ANY LOSS, DAMAGES, OR CLAIMS WHATSOEVER, INCLUDING,
- * WITHOUT LIMITATION, ANY DIRECT, CONSEQUENTIAL, SPECIAL, INDIRECT, PUNITIVE, OR INCIDENTAL DAMAGES; ANY LOST PROFITS,
- * OTHER ECONOMIC DAMAGE, PROPERTY DAMAGE, OR PERSONAL INJURY; AND EVEN IF RENESAS HAS BEEN ADVISED OF THE POSSIBILITY
- * OF SUCH LOSS, DAMAGES, CLAIMS OR COSTS.
- **********************************************************************************************************************/
+/*
+* Copyright (c) 2020 - 2024 Renesas Electronics Corporation and/or its affiliates
+*
+* SPDX-License-Identifier: BSD-3-Clause
+*/
 #ifndef R_USB_TYPEDEF_H
 #define R_USB_TYPEDEF_H
 
@@ -54,11 +40,11 @@ typedef TMO     usb_tm_t;
 typedef VP      usb_mh_t;
 typedef VP_INT  usb_vp_int_t;
 
-#if defined(BSP_MCU_GROUP_RA6M3) || defined(BSP_MCU_GROUP_RA6M5)
+#if defined(USB_HIGH_SPEED_MODULE)
 typedef volatile R_USB_HS0_Type * usb_regadr1_t; // @@
-#else /* defined(BSP_MCU_GROUP_RA6M3) || defined(BSP_MCU_GROUP_RA6M5) */
+#else /* defined(USB_HIGH_SPEED_MODULE) */
 typedef volatile R_USB_FS0_Type * usb_regadr1_t;
-#endif /* defined(BSP_MCU_GROUP_RA6M3) || defined(BSP_MCU_GROUP_RA6M5) */
+#endif /* defined(USB_HIGH_SPEED_MODULE) */
 
 typedef volatile R_USB_FS0_Type * usb_regadr_t;
 
@@ -67,13 +53,18 @@ typedef void        (* usb_cb_t)(struct usb_utr *, uint16_t, uint16_t);
 
 typedef struct usb_utr
 {
-    usb_mh_t     msghead;                      /* Message header (for SH-solution) */
-    usb_cb_t     complete;                     /* Call Back Function Info */
-    void const * p_tranadr;                    /* Transfer data Start address */
-    uint32_t     read_req_len;                 /* Read Request Length */
-    uint32_t     tranlen;                      /* Transfer data length */
-    uint16_t   * p_setup;                      /* Setup packet(for control only) */
-    void       * p_usr_data;
+    usb_mh_t     msghead;              /* Message header (for SH-solution) */
+    usb_cb_t     complete;             /* Call Back Function Info */
+    void const * p_tranadr;            /* Transfer data Start address */
+#if (BSP_CFG_RTOS == 1)                /* Azure RTOS */
+ #if (USB_CFG_DMA == USB_CFG_ENABLE)
+    void const * p_tranadr_hold;
+ #endif /* #if (USB_CFG_DMA == USB_CFG_ENABLE) */
+#endif /* (BSP_CFG_RTOS == 1) */
+    uint32_t   read_req_len;                   /* Read Request Length */
+    uint32_t   tranlen;                        /* Transfer data length */
+    uint16_t * p_setup;                        /* Setup packet(for control only) */
+    void     * p_usr_data;
 #if (BSP_CFG_RTOS != 0)
     usb_hdl_t cur_task_hdl;                    /* Task Handle */
 #endif /* #if (BSP_CFG_RTOS != 0) */
@@ -98,10 +89,10 @@ typedef struct usb_utr
 #endif                                         /* USB_NUM_USBIP == 2 */
     };
 #if (BSP_CFG_RTOS == 1)                        /* Azure RTOS */
- #if defined(USB_CFG_PPRN_USE)
+ #if (defined(USB_CFG_PPRN_USE) || defined(USB_CFG_PCDC_USE))
     uint32_t timeout;
     uint8_t  is_timeout;
- #endif /* define(USB_CFG_PPRN_USE) */
+ #endif /* define(USB_CFG_PPRN_USE) ||  defined(USB_CFG_PCDC_USE) */
 #endif                                 /* (BSP_CFG_RTOS == 1) */
 } usb_message_t;
 
@@ -245,16 +236,18 @@ typedef enum e_usb_class_internal
     USB_CLASS_INTERNAL_PHID2,          ///< PHID2 Class     5
     USB_CLASS_INTERNAL_PAUD,           ///< PAUD Class      6
     USB_CLASS_INTERNAL_PPRN,           ///< PPRN Class      7
-    USB_CLASS_INTERNAL_PVND,           ///< PVND Class      8
-    USB_CLASS_INTERNAL_HCDC,           ///< HCDC Class      9
-    USB_CLASS_INTERNAL_HCDCC,          ///< HCDCC Class     10
-    USB_CLASS_INTERNAL_HHID,           ///< HHID Class      11
-    USB_CLASS_INTERNAL_HVND,           ///< HVND Class      12
-    USB_CLASS_INTERNAL_HMSC,           ///< HMSC Class      13
-    USB_CLASS_INTERNAL_PMSC,           ///< PMSC Class      14
-    USB_CLASS_INTERNAL_HPRN,           ///< HPRN Class      15
-    USB_CLASS_INTERNAL_REQUEST,        ///< USB Class Request      16
-    USB_CLASS_INTERNAL_END             ///< USB Class       17
+    USB_CLASS_INTERNAL_DFU,            ///< DFU Class       8
+    USB_CLASS_INTERNAL_PVND,           ///< PVND Class      9
+    USB_CLASS_INTERNAL_HCDC,           ///< HCDC Class      10
+    USB_CLASS_INTERNAL_HCDCC,          ///< HCDCC Class     11
+    USB_CLASS_INTERNAL_HHID,           ///< HHID Class      12
+    USB_CLASS_INTERNAL_HVND,           ///< HVND Class      13
+    USB_CLASS_INTERNAL_HMSC,           ///< HMSC Class      14
+    USB_CLASS_INTERNAL_PMSC,           ///< PMSC Class      15
+    USB_CLASS_INTERNAL_HPRN,           ///< HPRN Class      16
+    USB_CLASS_INTERNAL_HUVC,           ///< HUVC Class      17
+    USB_CLASS_INTERNAL_REQUEST,        ///< USB Class Request      18
+    USB_CLASS_INTERNAL_END,            ///< USB Class       19
 } usb_class_internal_t;
 
 /** Common macro for FSP header files. There is also a corresponding FSP_HEADER macro at the top of this file. */

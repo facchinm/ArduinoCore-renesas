@@ -1,34 +1,16 @@
-/***********************************************************************************************************************
- * Copyright [2020-2022] Renesas Electronics Corporation and/or its affiliates.  All Rights Reserved.
- *
- * This software and documentation are supplied by Renesas Electronics America Inc. and may only be used with products
- * of Renesas Electronics Corp. and its affiliates ("Renesas").  No other uses are authorized.  Renesas products are
- * sold pursuant to Renesas terms and conditions of sale.  Purchasers are solely responsible for the selection and use
- * of Renesas products and Renesas assumes no liability.  No license, express or implied, to any intellectual property
- * right is granted by Renesas. This software is protected under all applicable laws, including copyright laws. Renesas
- * reserves the right to change or discontinue this software and/or this documentation. THE SOFTWARE AND DOCUMENTATION
- * IS DELIVERED TO YOU "AS IS," AND RENESAS MAKES NO REPRESENTATIONS OR WARRANTIES, AND TO THE FULLEST EXTENT
- * PERMISSIBLE UNDER APPLICABLE LAW, DISCLAIMS ALL WARRANTIES, WHETHER EXPLICITLY OR IMPLICITLY, INCLUDING WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT, WITH RESPECT TO THE SOFTWARE OR
- * DOCUMENTATION.  RENESAS SHALL HAVE NO LIABILITY ARISING OUT OF ANY SECURITY VULNERABILITY OR BREACH.  TO THE MAXIMUM
- * EXTENT PERMITTED BY LAW, IN NO EVENT WILL RENESAS BE LIABLE TO YOU IN CONNECTION WITH THE SOFTWARE OR DOCUMENTATION
- * (OR ANY PERSON OR ENTITY CLAIMING RIGHTS DERIVED FROM YOU) FOR ANY LOSS, DAMAGES, OR CLAIMS WHATSOEVER, INCLUDING,
- * WITHOUT LIMITATION, ANY DIRECT, CONSEQUENTIAL, SPECIAL, INDIRECT, PUNITIVE, OR INCIDENTAL DAMAGES; ANY LOST PROFITS,
- * OTHER ECONOMIC DAMAGE, PROPERTY DAMAGE, OR PERSONAL INJURY; AND EVEN IF RENESAS HAS BEEN ADVISED OF THE POSSIBILITY
- * OF SUCH LOSS, DAMAGES, CLAIMS OR COSTS.
- **********************************************************************************************************************/
+/*
+* Copyright (c) 2020 - 2024 Renesas Electronics Corporation and/or its affiliates
+*
+* SPDX-License-Identifier: BSD-3-Clause
+*/
 
 /*******************************************************************************************************************//**
- * @ingroup RENESAS_INTERFACES
+ * @ingroup RENESAS_STORAGE_INTERFACES
  * @defgroup SPI_FLASH_API SPI Flash Interface
  * @brief Interface for accessing external SPI flash devices.
  *
  * @section SPI_FLASH_API_SUMMARY Summary
  * The SPI flash API provides an interface that configures, writes, and erases sectors in SPI flash devices.
- *
- * Implemented by:
- * - @ref OSPI
- * - @ref QSPI
  * @{
  **********************************************************************************************************************/
 
@@ -69,16 +51,38 @@ typedef enum e_spi_flash_read_mode
 /** SPI protocol. */
 typedef enum e_spi_flash_protocol
 {
-    SPI_FLASH_PROTOCOL_EXTENDED_SPI = 0, ///< Extended SPI mode (commands on 1 line)
+    /** Extended SPI mode (commands on 1 line) */
+    SPI_FLASH_PROTOCOL_EXTENDED_SPI = 0x000,
 
     /** QPI mode (commands on 4 lines). Note that the application must ensure the device is in QPI mode. */
-    SPI_FLASH_PROTOCOL_QPI = 2,
+    SPI_FLASH_PROTOCOL_QPI = 0x002,
 
     /** SOPI mode (command and data on 8 lines). Note that the application must ensure the device is in SOPI mode. */
-    SPI_FLASH_PROTOCOL_SOPI = 3,
+    SPI_FLASH_PROTOCOL_SOPI = 0x003,
 
     /** DOPI mode (command and data on 8 lines, dual data rate). Note that the application must ensure the device is in DOPI mode. */
-    SPI_FLASH_PROTOCOL_DOPI = 4,
+    SPI_FLASH_PROTOCOL_DOPI = 0x004,
+
+    /** 1S-1S-1S protocol mode */
+    SPI_FLASH_PROTOCOL_1S_1S_1S = 0x000,
+
+    /** 4S-4D-4D protocol mode */
+    SPI_FLASH_PROTOCOL_4S_4D_4D = 0x3B2,
+
+    /** 8D-8D-8D protocol mode */
+    SPI_FLASH_PROTOCOL_8D_8D_8D = 0x3FF,
+
+    /** 1S-2S-2S protocol mode */
+    SPI_FLASH_PROTOCOL_1S_2S_2S = 0x048,
+
+    /** 2S-2S-2S protocol mode */
+    SPI_FLASH_PROTOCOL_2S_2S_2S = 0x049,
+
+    /** 1S-4S-4S protocol mode */
+    SPI_FLASH_PROTOCOL_1S_4S_4S = 0x090,
+
+    /** 4S-4S-4S protocol mode */
+    SPI_FLASH_PROTOCOL_4S_4S_4S = 0x092
 } spi_flash_protocol_t;
 
 /** Number of bytes in the address. */
@@ -105,9 +109,9 @@ typedef enum e_spi_flash_data_lines
 /** Number of dummy cycles for fast read operations. */
 typedef enum e_spi_flash_dummy_clocks
 {
-    /** Default is 6 clocks for Fast Read Quad I/O, 4 clocks for Fast Read Dual I/O, and 8 clocks for other
-     * fast read instructions including Fast Read Quad Output, Fast Read Dual Output, and Fast Read. */
-    SPI_FLASH_DUMMY_CLOCKS_DEFAULT,
+    SPI_FLASH_DUMMY_CLOCKS_0 = 0,      ///< 0 dummy clocks
+    SPI_FLASH_DUMMY_CLOCKS_1,          ///< 1 dummy clocks
+    SPI_FLASH_DUMMY_CLOCKS_2,          ///< 2 dummy clocks
     SPI_FLASH_DUMMY_CLOCKS_3,          ///< 3 dummy clocks
     SPI_FLASH_DUMMY_CLOCKS_4,          ///< 4 dummy clocks
     SPI_FLASH_DUMMY_CLOCKS_5,          ///< 5 dummy clocks
@@ -123,6 +127,21 @@ typedef enum e_spi_flash_dummy_clocks
     SPI_FLASH_DUMMY_CLOCKS_15,         ///< 15 dummy clocks
     SPI_FLASH_DUMMY_CLOCKS_16,         ///< 16 dummy clocks
     SPI_FLASH_DUMMY_CLOCKS_17,         ///< 17 dummy clocks
+    SPI_FLASH_DUMMY_CLOCKS_18,         ///< 18 dummy clocks
+    SPI_FLASH_DUMMY_CLOCKS_19,         ///< 19 dummy clocks
+    SPI_FLASH_DUMMY_CLOCKS_20,         ///< 20 dummy clocks
+    SPI_FLASH_DUMMY_CLOCKS_21,         ///< 21 dummy clocks
+    SPI_FLASH_DUMMY_CLOCKS_22,         ///< 22 dummy clocks
+    SPI_FLASH_DUMMY_CLOCKS_23,         ///< 23 dummy clocks
+    SPI_FLASH_DUMMY_CLOCKS_24,         ///< 24 dummy clocks
+    SPI_FLASH_DUMMY_CLOCKS_25,         ///< 25 dummy clocks
+    SPI_FLASH_DUMMY_CLOCKS_26,         ///< 26 dummy clocks
+    SPI_FLASH_DUMMY_CLOCKS_27,         ///< 27 dummy clocks
+    SPI_FLASH_DUMMY_CLOCKS_28,         ///< 28 dummy clocks
+    SPI_FLASH_DUMMY_CLOCKS_29,         ///< 29 dummy clocks
+    SPI_FLASH_DUMMY_CLOCKS_30,         ///< 30 dummy clocks
+    SPI_FLASH_DUMMY_CLOCKS_31,         ///< 31 dummy clocks
+    SPI_FLASH_DUMMY_CLOCKS_DEFAULT = 0xFF,
 } spi_flash_dummy_clocks_t;
 
 /** Direct Read and Write direction */
@@ -142,12 +161,16 @@ typedef struct st_spi_flash_erase_command
 /** Structure to define a direct transfer. */
 typedef struct st_spi_flash_direct_transfer
 {
+    union
+    {
+        uint64_t data_u64;             ///< Data (64-bit)
+        uint32_t data;                 ///< Data
+    };
     uint32_t address;                  ///< Starting address
-    uint32_t data;                     ///< Data
     uint16_t command;                  ///< Transfer command
     uint8_t  dummy_cycles;             ///< Number of dummy cycles
     uint8_t  command_length;           ///< Command length
-    uint8_t  address_length;           ///< Address lengrh
+    uint8_t  address_length;           ///< Address length
     uint8_t  data_length;              ///< Data length
 } spi_flash_direct_transfer_t;
 
@@ -177,9 +200,6 @@ typedef struct st_spi_flash_cfg
 } spi_flash_cfg_t;
 
 /** SPI flash control block.  Allocate an instance specific control block to pass into the SPI flash API calls.
- * @par Implemented as
- * - qspi_instance_ctrl_t
- * - ospi_instance_ctrl_t
  */
 typedef void spi_flash_ctrl_t;
 
@@ -195,19 +215,13 @@ typedef struct st_spi_flash_status
 typedef struct st_spi_flash_api
 {
     /** Open the SPI flash driver module.
-     * @par Implemented as
-     * - @ref R_OSPI_Open()
-     * - @ref R_QSPI_Open()
      *
      * @param[in] p_ctrl               Pointer to a driver handle
      * @param[in] p_cfg                Pointer to a configuration structure
      **/
-    fsp_err_t (* open)(spi_flash_ctrl_t * p_ctrl, spi_flash_cfg_t const * const p_cfg);
+    fsp_err_t (* open)(spi_flash_ctrl_t * const p_ctrl, spi_flash_cfg_t const * const p_cfg);
 
     /** Write raw data to the SPI flash.
-     * @par Implemented as
-     * - @ref R_OSPI_DirectWrite()
-     * - @ref R_QSPI_DirectWrite()
      *
      * @param[in] p_ctrl                Pointer to a driver handle
      * @param[in] p_src                 Pointer to raw data to write, must include any required command/address
@@ -217,122 +231,89 @@ typedef struct st_spi_flash_api
      *                                  memory mapped access is possible after this function returns if the device
      *                                  is not busy.
      **/
-    fsp_err_t (* directWrite)(spi_flash_ctrl_t * p_ctrl, uint8_t const * const p_src, uint32_t const bytes,
+    fsp_err_t (* directWrite)(spi_flash_ctrl_t * const p_ctrl, uint8_t const * const p_src, uint32_t const bytes,
                               bool const read_after_write);
 
     /** Read raw data from the SPI flash. Must follow a call to @ref spi_flash_api_t::directWrite.
-     * @par Implemented as
-     * - @ref R_OSPI_DirectRead()
-     * - @ref R_QSPI_DirectRead()
      *
      * @param[in]  p_ctrl               Pointer to a driver handle
      * @param[out] p_dest               Pointer to read raw data into
      * @param[in]  bytes                Number of bytes to read
      **/
-    fsp_err_t (* directRead)(spi_flash_ctrl_t * p_ctrl, uint8_t * const p_dest, uint32_t const bytes);
+    fsp_err_t (* directRead)(spi_flash_ctrl_t * const p_ctrl, uint8_t * const p_dest, uint32_t const bytes);
 
     /** Direct Read/Write raw data to the SPI flash.
-     * @par Implemented as
-     * - @ref R_OSPI_DirectTransfer()
-     * - @ref R_QSPI_DirectTransfer()
      *
      * @param[in] p_ctrl               Pointer to a driver handle
      * @param[in] p_data               Pointer to command, address and data values and lengths
      * @param[in] direction            Direct Read/Write
      **/
-    fsp_err_t (* directTransfer)(spi_flash_ctrl_t * p_ctrl, spi_flash_direct_transfer_t * const p_transfer,
+    fsp_err_t (* directTransfer)(spi_flash_ctrl_t * const p_ctrl, spi_flash_direct_transfer_t * const p_transfer,
                                  spi_flash_direct_transfer_dir_t direction);
 
     /** Change the SPI protocol in the driver. The application must change the SPI protocol on the device.
-     * @par Implemented as
-     * - @ref R_OSPI_SpiProtocolSet()
-     * - @ref R_QSPI_SpiProtocolSet()
      *
      * @param[in] p_ctrl                Pointer to a driver handle
      * @param[in] spi_protocol          Desired SPI protocol
      **/
-    fsp_err_t (* spiProtocolSet)(spi_flash_ctrl_t * p_ctrl, spi_flash_protocol_t spi_protocol);
+    fsp_err_t (* spiProtocolSet)(spi_flash_ctrl_t * const p_ctrl, spi_flash_protocol_t spi_protocol);
 
     /** Program a page of data to the flash.
-     * @par Implemented as
-     * - @ref R_OSPI_Write()
-     * - @ref R_QSPI_Write()
      *
      * @param[in] p_ctrl               Pointer to a driver handle
      * @param[in] p_src                The memory address of the data to write to the flash device
      * @param[in] p_dest               The location in the flash device address space to write the data to
      * @param[in] byte_count           The number of bytes to write
      **/
-    fsp_err_t (* write)(spi_flash_ctrl_t * p_ctrl, uint8_t const * const p_src, uint8_t * const p_dest,
+    fsp_err_t (* write)(spi_flash_ctrl_t * const p_ctrl, uint8_t const * const p_src, uint8_t * const p_dest,
                         uint32_t byte_count);
 
     /** Erase a certain number of bytes of the flash.
-     * @par Implemented as
-     * - @ref R_OSPI_Erase()
-     * - @ref R_QSPI_Erase()
      *
      * @param[in] p_ctrl               Pointer to a driver handle
      * @param[in] p_device_address     The location in the flash device address space to start the erase from
      * @param[in] byte_count           The number of bytes to erase. Set to SPI_FLASH_ERASE_SIZE_CHIP_ERASE to erase entire
      *                                 chip.
      **/
-    fsp_err_t (* erase)(spi_flash_ctrl_t * p_ctrl, uint8_t * const p_device_address, uint32_t byte_count);
+    fsp_err_t (* erase)(spi_flash_ctrl_t * const p_ctrl, uint8_t * const p_device_address, uint32_t byte_count);
 
     /** Get the write or erase status of the flash.
-     * @par Implemented as
-     * - @ref R_OSPI_StatusGet()
-     * - @ref R_QSPI_StatusGet()
      *
      * @param[in] p_ctrl               Pointer to a driver handle
      * @param[out] p_status            Current status of the SPI flash device stored here.
      **/
-    fsp_err_t (* statusGet)(spi_flash_ctrl_t * p_ctrl, spi_flash_status_t * const p_status);
+    fsp_err_t (* statusGet)(spi_flash_ctrl_t * const p_ctrl, spi_flash_status_t * const p_status);
 
     /** Enter XIP mode.
-     * @par Implemented as
-     * - @ref R_OSPI_XipEnter()
-     * - @ref R_QSPI_XipEnter()
      *
      * @param[in] p_ctrl               Pointer to a driver handle
      **/
-    fsp_err_t (* xipEnter)(spi_flash_ctrl_t * p_ctrl);
+    fsp_err_t (* xipEnter)(spi_flash_ctrl_t * const p_ctrl);
 
     /** Exit XIP mode.
-     * @par Implemented as
-     * - @ref R_OSPI_XipExit()
-     * - @ref R_QSPI_XipExit()
      *
      * @param[in] p_ctrl               Pointer to a driver handle
      **/
-    fsp_err_t (* xipExit)(spi_flash_ctrl_t * p_ctrl);
+    fsp_err_t (* xipExit)(spi_flash_ctrl_t * const p_ctrl);
 
     /** Select the bank to access.  See implementation for details.
-     * @par Implemented as
-     * - @ref R_OSPI_BankSet()
-     * - @ref R_QSPI_BankSet()
      *
      * @param[in] p_ctrl               Pointer to a driver handle
      * @param[in] bank                 The bank number
      **/
-    fsp_err_t (* bankSet)(spi_flash_ctrl_t * p_ctrl, uint32_t bank);
+    fsp_err_t (* bankSet)(spi_flash_ctrl_t * const p_ctrl, uint32_t bank);
 
     /** AutoCalibrate the SPI flash driver module. Expected to be used when auto-calibrating OSPI RAM device.
-     * @par Implemented as
-     * - @ref R_OSPI_AutoCalibrate()
-     * - @ref R_QSPI_AutoCalibrate()
      *
      * @param[in] p_ctrl               Pointer to a driver handle
      **/
-    fsp_err_t (* autoCalibrate)(spi_flash_ctrl_t * p_ctrl);
+    fsp_err_t (* autoCalibrate)(spi_flash_ctrl_t * const p_ctrl);
 
     /** Close the SPI flash driver module.
-     * @par Implemented as
-     * - @ref R_OSPI_Close()
-     * - @ref R_QSPI_Close()
      *
      * @param[in] p_ctrl               Pointer to a driver handle
      **/
-    fsp_err_t (* close)(spi_flash_ctrl_t * p_ctrl);
+    fsp_err_t (* close)(spi_flash_ctrl_t * const p_ctrl);
 } spi_flash_api_t;
 
 /** This structure encompasses everything that is needed to use an instance of this interface. */
@@ -349,5 +330,5 @@ FSP_FOOTER
 #endif
 
 /*******************************************************************************************************************//**
- * @} (end addtogroup SPI_FLASH_API)
+ * @} (end defgroup SPI_FLASH_API)
  **********************************************************************************************************************/

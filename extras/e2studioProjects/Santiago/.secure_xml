@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<raConfiguration version="7">
+<raConfiguration version="9">
   <generalSettings>
     <option key="#Board#" value="board.custom"/>
     <option key="CPU" value="RA4M1"/>
@@ -9,10 +9,11 @@
     <option key="#DeviceCommand#" value="R7FA4M1AB"/>
     <option key="#RTOS#" value="_none"/>
     <option key="#pinconfiguration#" value="R7FA4M1AB3CNE.pincfg"/>
-    <option key="#FSPVersion#" value="4.0.0"/>
+    <option key="#FSPVersion#" value="5.3.0"/>
     <option key="#SELECTED_TOOLCHAIN#" value="gcc-arm-embedded"/>
     <option key="#ToolchainVersion#" value="10.3.1.20210824"/>
   </generalSettings>
+  <raBspConfiguration/>
   <raClockConfiguration>
     <node id="board.clock.xtal.freq" mul="0" option="_edit"/>
     <node id="board.clock.pll.source" option="board.clock.pll.source.xtal"/>
@@ -42,7 +43,6 @@
     <node id="board.clock.uclk.source" option="board.clock.uclk.source.hoco"/>
     <node id="board.clock.uclk.display" option="board.clock.clkout.display.value"/>
   </raClockConfiguration>
-  <raModuleConfiguration/>
   <raPinConfiguration>
     <pincfg active="true" name="" symbol="">
       <configSetting altId="adc.vrefh0.p010" configurationId="adc.vrefh0"/>
@@ -75,11 +75,11 @@
       <configSetting altId="spi1.mosi.p109" configurationId="spi1.mosi" isUsedByDriver="true"/>
       <configSetting altId="spi1.rspck.p111" configurationId="spi1.rspck" isUsedByDriver="true"/>
       <configSetting altId="spi1.ssl0.p108" configurationId="spi1.ssl0" isUsedByDriver="true"/>
-      <configSetting altId="usbfs0.id.p408" configurationId="usbfs0.id"/>
-      <configSetting altId="usbfs0.usbdm.p915" configurationId="usbfs0.usbdm"/>
-      <configSetting altId="usbfs0.usbdp.p914" configurationId="usbfs0.usbdp"/>
-      <configSetting altId="usbfs0.vbus.p407" configurationId="usbfs0.vbus"/>
-      <configSetting altId="usbfs0.vbusen.p500" configurationId="usbfs0.vbusen"/>
+      <configSetting altId="usbfs0.id.p408" configurationId="usbfs0.id" isUsedByDriver="true"/>
+      <configSetting altId="usbfs0.usbdm.p915" configurationId="usbfs0.usbdm" isUsedByDriver="true"/>
+      <configSetting altId="usbfs0.usbdp.p914" configurationId="usbfs0.usbdp" isUsedByDriver="true"/>
+      <configSetting altId="usbfs0.vbus.p407" configurationId="usbfs0.vbus" isUsedByDriver="true"/>
+      <configSetting altId="usbfs0.vbusen.p500" configurationId="usbfs0.vbusen" isUsedByDriver="true"/>
     </pincfg>
   </raPinConfiguration>
 </raConfiguration>

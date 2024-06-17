@@ -1,33 +1,17 @@
-/***********************************************************************************************************************
- * Copyright [2020-2022] Renesas Electronics Corporation and/or its affiliates.  All Rights Reserved.
- *
- * This software and documentation are supplied by Renesas Electronics America Inc. and may only be used with products
- * of Renesas Electronics Corp. and its affiliates ("Renesas").  No other uses are authorized.  Renesas products are
- * sold pursuant to Renesas terms and conditions of sale.  Purchasers are solely responsible for the selection and use
- * of Renesas products and Renesas assumes no liability.  No license, express or implied, to any intellectual property
- * right is granted by Renesas. This software is protected under all applicable laws, including copyright laws. Renesas
- * reserves the right to change or discontinue this software and/or this documentation. THE SOFTWARE AND DOCUMENTATION
- * IS DELIVERED TO YOU "AS IS," AND RENESAS MAKES NO REPRESENTATIONS OR WARRANTIES, AND TO THE FULLEST EXTENT
- * PERMISSIBLE UNDER APPLICABLE LAW, DISCLAIMS ALL WARRANTIES, WHETHER EXPLICITLY OR IMPLICITLY, INCLUDING WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT, WITH RESPECT TO THE SOFTWARE OR
- * DOCUMENTATION.  RENESAS SHALL HAVE NO LIABILITY ARISING OUT OF ANY SECURITY VULNERABILITY OR BREACH.  TO THE MAXIMUM
- * EXTENT PERMITTED BY LAW, IN NO EVENT WILL RENESAS BE LIABLE TO YOU IN CONNECTION WITH THE SOFTWARE OR DOCUMENTATION
- * (OR ANY PERSON OR ENTITY CLAIMING RIGHTS DERIVED FROM YOU) FOR ANY LOSS, DAMAGES, OR CLAIMS WHATSOEVER, INCLUDING,
- * WITHOUT LIMITATION, ANY DIRECT, CONSEQUENTIAL, SPECIAL, INDIRECT, PUNITIVE, OR INCIDENTAL DAMAGES; ANY LOST PROFITS,
- * OTHER ECONOMIC DAMAGE, PROPERTY DAMAGE, OR PERSONAL INJURY; AND EVEN IF RENESAS HAS BEEN ADVISED OF THE POSSIBILITY
- * OF SUCH LOSS, DAMAGES, CLAIMS OR COSTS.
- **********************************************************************************************************************/
+/*
+* Copyright (c) 2020 - 2024 Renesas Electronics Corporation and/or its affiliates
+*
+* SPDX-License-Identifier: BSD-3-Clause
+*/
 
 /*******************************************************************************************************************//**
- * @ingroup RENESAS_INTERFACES
+ * @ingroup RENESAS_CONNECTIVITY_INTERFACES
  * @defgroup USB_API USB Interface
  * @brief Interface for USB functions.
  *
  * @section USB_API_Summary Summary
  * The USB interface provides USB functionality.
  *
- * The USB interface can be implemented by:
- * - @ref USB
  *
  * @{
  **********************************************************************************************************************/
@@ -157,7 +141,7 @@ FSP_HEADER
 #define USB_IFCLS_CDCD             (0x0AU)   ///< CDC-Data Class
 #define USB_IFCLS_CHIP             (0x0BU)   ///< Chip/Smart Card Class
 #define USB_IFCLS_CNT              (0x0CU)   ///< Content-Security Class
-#define USB_IFCLS_VID              (0x0DU)   ///< Video Class
+#define USB_IFCLS_VID              (0x0EU)   ///< Video Class
 #define USB_IFCLS_DIAG             (0xDCU)   ///< Diagnostic Device
 #define USB_IFCLS_WIRE             (0xE0U)   ///< Wireless Controller
 #define USB_IFCLS_APL              (0xFEU)   ///< Application-Specific
@@ -234,6 +218,7 @@ typedef enum e_usb_class
     USB_CLASS_PHID2,                   ///< PHID2 Class
     USB_CLASS_PAUD,                    ///< PAUD Class
     USB_CLASS_PPRN,                    ///< PPRN Class
+    USB_CLASS_DFU,                     ///< DFU Class
     USB_CLASS_PVND,                    ///< PVND Class
     USB_CLASS_HCDC,                    ///< HCDC Class
     USB_CLASS_HCDCC,                   ///< HCDCC Class
@@ -242,8 +227,10 @@ typedef enum e_usb_class
     USB_CLASS_HMSC,                    ///< HMSC Class
     USB_CLASS_PMSC,                    ///< PMSC Class
     USB_CLASS_HPRN,                    ///< HPRN Class
+    USB_CLASS_HUVC,                    ///< HUVC Class
     USB_CLASS_REQUEST,                 ///< USB Class Request
-    USB_CLASS_END                      ///< USB Class End Code
+    USB_CLASS_HUB,                     ///< HUB Class
+    USB_CLASS_END,                     ///< USB Class End Code
 } usb_class_t;
 
 /** USB battery charging type */
@@ -305,8 +292,6 @@ typedef enum e_usb_address
 } usb_address_t;
 
 /** USB control block.  Allocate an instance specific control block to pass into the USB API calls.
- * @par Implemented as
- * - usb_instance_ctrl_t
  */
 typedef void usb_ctrl_t;
 typedef void (usb_compliance_cb_t)(void *);
@@ -367,8 +352,10 @@ typedef struct st_usb_event_info
     const transfer_instance_t * p_transfer_rx;  ///< Receive context
 } usb_event_info_t;
 
+typedef usb_event_info_t usb_callback_args_t;
+
 #if (BSP_CFG_RTOS == 0)
-typedef void (usb_callback_t)(void *);
+typedef void (usb_callback_t)(usb_callback_args_t *);
 #endif
 #if (BSP_CFG_RTOS == 1)
 typedef TX_THREAD * usb_hdl_t;
@@ -412,300 +399,252 @@ typedef struct st_usb_cfg
     void const                * p_context;          ///< Other Context
     const transfer_instance_t * p_transfer_tx;      ///< Send context
     const transfer_instance_t * p_transfer_rx;      ///< Receive context
+    void const                * p_extend;           ///< Pointer to extended configuration by instance of interface.
 } usb_cfg_t;
 
 /** Functions implemented at the HAL layer will follow this API. */
 typedef struct st_usb_api
 {
     /** Start the USB module
-     * @par Implemented as
-     * - @ref R_USB_Open()
      *
-     * @param[in]  p_api_ctrl   Pointer to control structure.
+     * @param[in]  p_ctrl       Pointer to control structure.
      * @param[in]  p_cfg        Pointer to configuration structure.
      */
-    fsp_err_t (* open)(usb_ctrl_t * const p_api_ctrl, usb_cfg_t const * const p_cfg);
+    fsp_err_t (* open)(usb_ctrl_t * const p_ctrl, usb_cfg_t const * const p_cfg);
 
     /** Stop the USB module
-     * @par Implemented as
-     * - @ref R_USB_Close()
      *
-     * @param[in]  p_api_ctrl   Pointer to control structure.
+     * @param[in]  p_ctrl       Pointer to control structure.
      */
-    fsp_err_t (* close)(usb_ctrl_t * const p_api_ctrl);
+    fsp_err_t (* close)(usb_ctrl_t * const p_ctrl);
 
     /** Request USB data read
-     * @par Implemented as
-     * - @ref R_USB_Read()
      *
-     * @param[in]  p_api_ctrl   Pointer to control structure.
+     * @param[in]  p_ctrl       Pointer to control structure.
      * @param[in]  p_buf        Pointer to area that stores read data.
      * @param[in]  size         Read request size.
      * @param[in]  destination  In Host mode, it represents the device address, and in Peripheral mode, it represents the device class.
      */
-    fsp_err_t (* read)(usb_ctrl_t * const p_api_ctrl, uint8_t * p_buf, uint32_t size, uint8_t destination);
+    fsp_err_t (* read)(usb_ctrl_t * const p_ctrl, uint8_t * p_buf, uint32_t size, uint8_t destination);
 
     /** Request USB data write
-     * @par Implemented as
-     * - @ref R_USB_Write()
      *
-     * @param[in]  p_api_ctrl       Pointer to control structure.
+     * @param[in]  p_ctrl       Pointer to control structure.
      * @param[in]  p_buf        Pointer to area that stores write data.
      * @param[in]  size         Read request size.
      * @param[in]  destination  In Host mode, it represents the device address, and in Peripheral mode, it represents the device class.
      */
-    fsp_err_t (* write)(usb_ctrl_t * const p_api_ctrl, uint8_t const * const p_buf, uint32_t size, uint8_t destination);
+    fsp_err_t (* write)(usb_ctrl_t * const p_ctrl, uint8_t const * const p_buf, uint32_t size, uint8_t destination);
 
     /** Stop USB data read/write processing
-     * @par Implemented as
-     * - @ref R_USB_Stop()
      *
-     * @param[in]  p_api_ctrl    Pointer to control structure.
+     * @param[in]  p_ctrl        Pointer to control structure.
      * @param[in]  direction     Receive (USB_TRANSFER_READ) or send (USB_TRANSFER_WRITE).
      * @param[in]  destination   In Host mode, it represents the device address, and in Peripheral mode, it represents the device class.
      */
-    fsp_err_t (* stop)(usb_ctrl_t * const p_api_ctrl, usb_transfer_t direction, uint8_t destination);
+    fsp_err_t (* stop)(usb_ctrl_t * const p_ctrl, usb_transfer_t direction, uint8_t destination);
 
     /** Request suspend
-     * @par Implemented as
-     * - @ref R_USB_Suspend()
      *
-     * @param[in]  p_api_ctrl       Pointer to control structure.
+     * @param[in]  p_ctrl           Pointer to control structure.
      */
-    fsp_err_t (* suspend)(usb_ctrl_t * const p_api_ctrl);
+    fsp_err_t (* suspend)(usb_ctrl_t * const p_ctrl);
 
     /** Request resume
-     * @par Implemented as
-     * - @ref R_USB_Resume()
      *
-     * @param[in]  p_api_ctrl           Pointer to control structure.
+     * @param[in]  p_ctrl           Pointer to control structure.
      */
-    fsp_err_t (* resume)(usb_ctrl_t * const p_api_ctrl);
+    fsp_err_t (* resume)(usb_ctrl_t * const p_ctrl);
 
     /** Sets VBUS supply start/stop.
-     * @par Implemented as
-     * - @ref R_USB_VbusSet()
      *
-     * @param[in]  p_api_ctrl       Pointer to control structure.
+     * @param[in]  p_ctrl       Pointer to control structure.
      * @param[in]  state        VBUS supply start/stop specification
      */
-    fsp_err_t (* vbusSet)(usb_ctrl_t * const p_api_ctrl, uint16_t state);
+    fsp_err_t (* vbusSet)(usb_ctrl_t * const p_ctrl, uint16_t state);
 
     /** Get information on USB device.
-     * @par Implemented as
-     * - @ref R_USB_InfoGet()
      *
-     * @param[in]  p_api_ctrl       Pointer to control structure.
+     * @param[in]  p_ctrl       Pointer to control structure.
      * @param[in]  p_info       Pointer to usb_info_t structure area.
      * @param[in]  destination  Device address for Host.
      */
-    fsp_err_t (* infoGet)(usb_ctrl_t * const p_api_ctrl, usb_info_t * p_info, uint8_t destination);
+    fsp_err_t (* infoGet)(usb_ctrl_t * const p_ctrl, usb_info_t * p_info, uint8_t destination);
 
     /** Request data read from specified pipe
-     * @par Implemented as
-     * - @ref R_USB_PipeRead()
      *
-     * @param[in]  p_api_ctrl       Pointer to control structure.
+     * @param[in]  p_ctrl       Pointer to control structure.
      * @param[in]  p_buf        Pointer to area that stores read data.
      * @param[in]  size         Read request size.
-     * @param[in]  pipe_number      Pipe Number.
+     * @param[in]  pipe_number  Pipe Number.
      */
-    fsp_err_t (* pipeRead)(usb_ctrl_t * const p_api_ctrl, uint8_t * p_buf, uint32_t size, uint8_t pipe_number);
+    fsp_err_t (* pipeRead)(usb_ctrl_t * const p_ctrl, uint8_t * p_buf, uint32_t size, uint8_t pipe_number);
 
     /** Request data write to specified pipe
-     * @par Implemented as
-     * - @ref R_USB_PipeWrite()
      *
-     * @param[in]  p_api_ctrl       Pointer to control structure.
+     * @param[in]  p_ctrl       Pointer to control structure.
      * @param[in]  p_buf        Pointer to area that stores write data.
      * @param[in]  size         Read request size.
-     * @param[in]  pipe_number      Pipe Number.
+     * @param[in]  pipe_number  Pipe Number.
      */
-    fsp_err_t (* pipeWrite)(usb_ctrl_t * const p_api_ctrl, uint8_t * p_buf, uint32_t size, uint8_t pipe_number);
+    fsp_err_t (* pipeWrite)(usb_ctrl_t * const p_ctrl, uint8_t * p_buf, uint32_t size, uint8_t pipe_number);
 
     /** Stop USB data read/write processing to specified pipe
-     * @par Implemented as
-     * - @ref R_USB_PipeStop()
      *
-     * @param[in]  p_api_ctrl       Pointer to control structure.
-     * @param[in]  pipe_number      Pipe Number.
+     * @param[in]  p_ctrl       Pointer to control structure.
+     * @param[in]  pipe_number  Pipe Number.
      */
-    fsp_err_t (* pipeStop)(usb_ctrl_t * const p_api_ctrl, uint8_t pipe_number);
+    fsp_err_t (* pipeStop)(usb_ctrl_t * const p_ctrl, uint8_t pipe_number);
 
     /** Get pipe number
-     * @par Implemented as
-     * - @ref R_USB_UsedPipesGet()
      *
-     * @param[in]  p_api_ctrl       Pointer to control structure.
+     * @param[in]  p_ctrl       Pointer to control structure.
      * @param[in]  p_pipe       Pointer to area that stores the selected pipe number (bit map information).
      * @param[in]  destination  Device address for Host.
      */
-    fsp_err_t (* usedPipesGet)(usb_ctrl_t * const p_api_ctrl, uint16_t * p_pipe, uint8_t destination);
+    fsp_err_t (* usedPipesGet)(usb_ctrl_t * const p_ctrl, uint16_t * p_pipe, uint8_t destination);
 
     /** Get pipe information
-     * @par Implemented as
-     * - @ref R_USB_PipeInfoGet()
      *
-     * @param[in]  p_api_ctrl       Pointer to control structure.
-     * @param[in]  p_info           Pointer to usb_pipe_t structure area.
-     * @param[in]  pipe_number      Pipe Number.
+     * @param[in]  p_ctrl       Pointer to control structure.
+     * @param[in]  p_info       Pointer to usb_pipe_t structure area.
+     * @param[in]  pipe_number  Pipe Number.
      */
-    fsp_err_t (* pipeInfoGet)(usb_ctrl_t * const p_api_ctrl, usb_pipe_t * p_info, uint8_t pipe_number);
+    fsp_err_t (* pipeInfoGet)(usb_ctrl_t * const p_ctrl, usb_pipe_t * p_info, uint8_t pipe_number);
 
     /** Return USB-related completed events (OS less only)
-     * @par Implemented as
-     * - @ref R_USB_EventGet()
      *
-     * @param[in]  p_api_ctrl       Pointer to control structure.
+     * @param[in]  p_ctrl       Pointer to control structure.
      * @param[out] event        Pointer to event.
      */
-    fsp_err_t (* eventGet)(usb_ctrl_t * const p_api_ctrl, usb_status_t * event);
+    fsp_err_t (* eventGet)(usb_ctrl_t * const p_ctrl, usb_status_t * event);
 
     /** Register a callback function to be called upon completion of a USB related event. (RTOS only)
-     * @par Implemented as
-     * - @ref R_USB_Callback()
      *
      * @param[in]  p_callback   Pointer to Callback function.
      */
     fsp_err_t (* callback)(usb_callback_t * p_callback);
 
     /** Pull-up enable/disable setting of D+/D- line.
-     * @par Implemented as
-     * - @ref R_USB_PullUp()
      *
-     * @param[in]  p_api_ctrl       Pointer to control structure.
+     * @param[in]  p_ctrl      Pointer to control structure.
      * @param[in]  state       Pull-up enable/disable setting.
      */
-    fsp_err_t (* pullUp)(usb_ctrl_t * const p_api_ctrl, uint8_t state);
+    fsp_err_t (* pullUp)(usb_ctrl_t * const p_ctrl, uint8_t state);
 
     /** Performs settings and transmission processing when transmitting a setup packet.
-     * @par Implemented as
-     * - @ref R_USB_HostControlTransfer()
      *
-     * @param[in]     p_api_ctrl     USB control structure.
+     * @param[in]     p_ctrl         USB control structure.
      * @param[in]     p_setup        Setup packet information.
      * @param[in]     p_buf          Transfer area information.
      * @param[in]     device_address Device address information.
      */
-    fsp_err_t (* hostControlTransfer)(usb_ctrl_t * const p_api_ctrl, usb_setup_t * p_setup, uint8_t * p_buf,
+    fsp_err_t (* hostControlTransfer)(usb_ctrl_t * const p_ctrl, usb_setup_t * p_setup, uint8_t * p_buf,
                                       uint8_t device_address);
 
     /** Receives data sent by control transfer.
-     * @par Implemented as
-     * - @ref R_USB_PeriControlDataGet()
      *
-     * @param[in]     p_api_ctrl  USB control structure.
+     * @param[in]     p_ctrl      USB control structure.
      * @param[in]     p_buf       Data reception area information.
      * @param[in]     size        Data reception size information.
      */
-    fsp_err_t (* periControlDataGet)(usb_ctrl_t * const p_api_ctrl, uint8_t * p_buf, uint32_t size);
+    fsp_err_t (* periControlDataGet)(usb_ctrl_t * const p_ctrl, uint8_t * p_buf, uint32_t size);
 
     /** Performs transfer processing for control transfer.
-     * @par Implemented as
-     * - @ref R_USB_PeriControlDataSet()
      *
-     * @param[in]     p_api_ctrl  USB control structure.
+     * @param[in]     p_ctrl      USB control structure.
      * @param[in]     p_buf       Area information for data transfer.
      * @param[in]     size        Transfer size information.
      */
-    fsp_err_t (* periControlDataSet)(usb_ctrl_t * const p_api_ctrl, uint8_t * p_buf, uint32_t size);
+    fsp_err_t (* periControlDataSet)(usb_ctrl_t * const p_ctrl, uint8_t * p_buf, uint32_t size);
 
     /** Set the response to the setup packet.
-     * @par Implemented as
-     * - @ref R_USB_PeriControlStatusSet()
      *
-     * @param[in]     p_api_ctrl  USB control structure.
+     * @param[in]     p_ctrl      USB control structure.
      * @param[in]     status      USB port startup information.
      */
-    fsp_err_t (* periControlStatusSet)(usb_ctrl_t * const p_api_ctrl, usb_setup_status_t status);
+    fsp_err_t (* periControlStatusSet)(usb_ctrl_t * const p_ctrl, usb_setup_status_t status);
 
     /** Sends a remote wake-up signal to the connected Host.
-     * @par Implemented as
-     * - @ref R_USB_RemoteWakeup()
+     *
+     * @param[in]     p_ctrl      USB control structure.
+     */
+    fsp_err_t (* remoteWakeup)(usb_ctrl_t * const p_ctrl);
+
+    /** Activate USB Driver
      *
      * @param[in]     p_api_ctrl  USB control structure.
      */
-    fsp_err_t (* remoteWakeup)(usb_ctrl_t * const p_api_ctrl);
+    fsp_err_t (* driverActivate)(usb_ctrl_t * const p_api_ctrl);
+
+    /** Set callback memory to USB driver.
+     *
+     * @param[in]     p_api_ctrl  USB control structure.
+     * @param[in]     p_callback_memory  Pointer to store USB event information.
+     */
+    fsp_err_t (* callbackMemorySet)(usb_ctrl_t * const p_api_ctrl, usb_callback_args_t * p_callback_memory);
 
     /** This API gets the module number.
-     * @par Implemented as
-     * - @ref R_USB_ModuleNumberGet()
      *
-     * @param[in]  p_api_ctrl       USB control structure.
+     * @param[in]  p_ctrl           USB control structure.
      * @param[out] module_number    Module number to get.
      */
-    fsp_err_t (* moduleNumberGet)(usb_ctrl_t * const p_api_ctrl, uint8_t * module_number);
+    fsp_err_t (* moduleNumberGet)(usb_ctrl_t * const p_ctrl, uint8_t * module_number);
 
     /** This API gets the module number.
-     * @par Implemented as
-     * - @ref R_USB_ClassTypeGet()
      *
-     * @param[in]  p_api_ctrl       USB control structure.
+     * @param[in]  p_ctrl           USB control structure.
      * @param[out] class_type       Class type to get.
      */
-    fsp_err_t (* classTypeGet)(usb_ctrl_t * const p_api_ctrl, usb_class_t * class_type);
+    fsp_err_t (* classTypeGet)(usb_ctrl_t * const p_ctrl, usb_class_t * class_type);
 
     /** This API gets the device address.
-     * @par Implemented as
-     * - @ref R_USB_DeviceAddressGet()
      *
-     * @param[in]  p_api_ctrl       USB control structure.
+     * @param[in]  p_ctrl           USB control structure.
      * @param[out] device_address   Device address to get.
      */
-    fsp_err_t (* deviceAddressGet)(usb_ctrl_t * const p_api_ctrl, uint8_t * device_address);
+    fsp_err_t (* deviceAddressGet)(usb_ctrl_t * const p_ctrl, uint8_t * device_address);
 
     /** This API gets the pipe number.
-     * @par Implemented as
-     * - @ref R_USB_PipeNumberGet()
      *
-     * @param[in]  p_api_ctrl       USB control structure.
+     * @param[in]  p_ctrl           USB control structure.
      * @param[out] pipe_number      Pipe number to get.
      */
-    fsp_err_t (* pipeNumberGet)(usb_ctrl_t * const p_api_ctrl, uint8_t * pipe_number);
+    fsp_err_t (* pipeNumberGet)(usb_ctrl_t * const p_ctrl, uint8_t * pipe_number);
 
     /** This API gets the state of the device.
-     * @par Implemented as
-     * - @ref R_USB_DeviceStateGet()
      *
-     * @param[in]  p_api_ctrl       USB control structure.
+     * @param[in]  p_ctrl           USB control structure.
      * @param[out] state            Device state to get.
      */
-    fsp_err_t (* deviceStateGet)(usb_ctrl_t * const p_api_ctrl, uint16_t * state);
+    fsp_err_t (* deviceStateGet)(usb_ctrl_t * const p_ctrl, uint16_t * state);
 
     /** This API gets the data size.
-     * @par Implemented as
-     * - @ref R_USB_DataSizeGet()
      *
-     * @param[in]  p_api_ctrl       USB control structure.
+     * @param[in]  p_ctrl           USB control structure.
      * @param[out] data_size        Data size to get.
      */
-    fsp_err_t (* dataSizeGet)(usb_ctrl_t * const p_api_ctrl, uint32_t * data_size);
+    fsp_err_t (* dataSizeGet)(usb_ctrl_t * const p_ctrl, uint32_t * data_size);
 
     /** This API gets the setup type.
-     * @par Implemented as
-     * - @ref R_USB_SetupGet()
      *
-     * @param[in]  p_api_ctrl       USB control structure.
+     * @param[in]  p_ctrl           USB control structure.
      * @param[out] setup            Setup type to get.
      */
-    fsp_err_t (* setupGet)(usb_ctrl_t * const p_api_ctrl, usb_setup_t * setup);
+    fsp_err_t (* setupGet)(usb_ctrl_t * const p_ctrl, usb_setup_t * setup);
 
     /** This API sets the callback function for OTG.
-     * @par Implemented as
-     * - @ref R_USB_OtgCallbackSet()
      *
-     * @param[in]  p_api_ctrl       USB control structure.
+     * @param[in]  p_ctrl           USB control structure.
      * @param[in]  p_callback       Pointer to the callback function for OTG.
      */
-    fsp_err_t (* otgCallbackSet)(usb_ctrl_t * const p_api_ctrl, usb_otg_callback_t * p_callback);
+    fsp_err_t (* otgCallbackSet)(usb_ctrl_t * const p_ctrl, usb_otg_callback_t * p_callback);
 
     /** This API starts SRP processing for OTG.
-     * @par Implemented as
-     * - @ref R_USB_OtgSRP()
      *
-     * @param[in]  p_api_ctrl       USB control structure.
+     * @param[in]  p_ctrl           USB control structure.
      */
-    fsp_err_t (* otgSRP)(usb_ctrl_t * const p_api_ctrl);
+    fsp_err_t (* otgSRP)(usb_ctrl_t * const p_ctrl);
 } usb_api_t;
 
 /** This structure encompasses everything that is needed to use an instance of this interface. */
@@ -722,5 +661,5 @@ FSP_FOOTER
 #endif                                 /* R_USB_API_H */
 
 /*******************************************************************************************************************//**
- * @} (end addtogroup USB_API)
+ * @} (end defgroup USB_API)
  **********************************************************************************************************************/

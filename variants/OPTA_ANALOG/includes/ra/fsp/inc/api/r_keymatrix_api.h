@@ -1,26 +1,12 @@
-/***********************************************************************************************************************
- * Copyright [2020-2022] Renesas Electronics Corporation and/or its affiliates.  All Rights Reserved.
- *
- * This software and documentation are supplied by Renesas Electronics America Inc. and may only be used with products
- * of Renesas Electronics Corp. and its affiliates ("Renesas").  No other uses are authorized.  Renesas products are
- * sold pursuant to Renesas terms and conditions of sale.  Purchasers are solely responsible for the selection and use
- * of Renesas products and Renesas assumes no liability.  No license, express or implied, to any intellectual property
- * right is granted by Renesas. This software is protected under all applicable laws, including copyright laws. Renesas
- * reserves the right to change or discontinue this software and/or this documentation. THE SOFTWARE AND DOCUMENTATION
- * IS DELIVERED TO YOU "AS IS," AND RENESAS MAKES NO REPRESENTATIONS OR WARRANTIES, AND TO THE FULLEST EXTENT
- * PERMISSIBLE UNDER APPLICABLE LAW, DISCLAIMS ALL WARRANTIES, WHETHER EXPLICITLY OR IMPLICITLY, INCLUDING WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT, WITH RESPECT TO THE SOFTWARE OR
- * DOCUMENTATION.  RENESAS SHALL HAVE NO LIABILITY ARISING OUT OF ANY SECURITY VULNERABILITY OR BREACH.  TO THE MAXIMUM
- * EXTENT PERMITTED BY LAW, IN NO EVENT WILL RENESAS BE LIABLE TO YOU IN CONNECTION WITH THE SOFTWARE OR DOCUMENTATION
- * (OR ANY PERSON OR ENTITY CLAIMING RIGHTS DERIVED FROM YOU) FOR ANY LOSS, DAMAGES, OR CLAIMS WHATSOEVER, INCLUDING,
- * WITHOUT LIMITATION, ANY DIRECT, CONSEQUENTIAL, SPECIAL, INDIRECT, PUNITIVE, OR INCIDENTAL DAMAGES; ANY LOST PROFITS,
- * OTHER ECONOMIC DAMAGE, PROPERTY DAMAGE, OR PERSONAL INJURY; AND EVEN IF RENESAS HAS BEEN ADVISED OF THE POSSIBILITY
- * OF SUCH LOSS, DAMAGES, CLAIMS OR COSTS.
- **********************************************************************************************************************/
+/*
+* Copyright (c) 2020 - 2024 Renesas Electronics Corporation and/or its affiliates
+*
+* SPDX-License-Identifier: BSD-3-Clause
+*/
 
 /*******************************************************************************************************************//**
  * @defgroup KEYMATRIX_API Key Matrix Interface
- * @ingroup RENESAS_INTERFACES
+ * @ingroup RENESAS_INPUT_INTERFACES
  * @brief Interface for key matrix functions.
  *
  * @section KEYMATRIX_API_SUMMARY Summary
@@ -29,8 +15,6 @@
  * that instant via a bit mask. This allows the interface to be used with a matrix configuration or a one-to-one
  * hardware implementation that is triggered on either a rising or a falling edge.
  *
- * Implemented by:
- * - @ref KINT
  * @{
  **********************************************************************************************************************/
 
@@ -56,8 +40,6 @@ FSP_HEADER
  *********************************************************************************************************************/
 
 /** Key matrix control block.  Allocate an instance specific control block to pass into the key matrix API calls.
- * @par Implemented as
- * - kint_instance_ctrl_t
  */
 typedef void keymatrix_ctrl_t;
 
@@ -94,8 +76,6 @@ typedef struct st_keymatrix_cfg
 typedef struct st_keymatrix_api
 {
     /** Initial configuration.
-     * @par Implemented as
-     * - @ref R_KINT_Open()
      *
      * @param[out]  p_ctrl   Pointer to control block. Must be declared by user. Value set in this function.
      * @param[in]   p_cfg    Pointer to configuration structure. All elements of the structure must be set by user.
@@ -103,24 +83,18 @@ typedef struct st_keymatrix_api
     fsp_err_t (* open)(keymatrix_ctrl_t * const p_ctrl, keymatrix_cfg_t const * const p_cfg);
 
     /** Enable Key interrupt
-     * @par Implemented as
-     * - @ref R_KINT_Enable()
      *
      * @param[in]     p_ctrl      Control block pointer set in Open call for this Key interrupt.
      */
     fsp_err_t (* enable)(keymatrix_ctrl_t * const p_ctrl);
 
     /** Disable Key interrupt.
-     * @par Implemented as
-     * - @ref R_KINT_Disable()
      *
      * @param[in]     p_ctrl      Control block pointer set in Open call for this Key interrupt.
      */
     fsp_err_t (* disable)(keymatrix_ctrl_t * const p_ctrl);
 
     /** Allow driver to be reconfigured. May reduce power consumption.
-     * @par Implemented as
-     * - @ref R_KINT_Close()
      *
      * @param[in]  p_ctrl      Control block pointer set in Open call for this Key interrupt.
      */

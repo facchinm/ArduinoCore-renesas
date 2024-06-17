@@ -119,7 +119,7 @@ extern dmac_instance_ctrl_t g_transfer22_ctrl;
 extern const transfer_cfg_t g_transfer22_cfg;
 
 #ifndef pippo
-void pippo(dmac_callback_args_t *p_args);
+void pippo(transfer_callback_args_t *p_args);
 #endif
 /* Transfer on DTC Instance. */
 extern const transfer_instance_t g_transfer8;
@@ -397,6 +397,12 @@ extern const usb_cfg_t g_basic0_cfg;
 
 #ifndef NULL
 void NULL(void*);
+#endif
+
+#if 0 == BSP_CFG_RTOS
+#ifndef NULL
+void NULL(usb_callback_args_t*);
+#endif
 #endif
 
 #if 2 == BSP_CFG_RTOS

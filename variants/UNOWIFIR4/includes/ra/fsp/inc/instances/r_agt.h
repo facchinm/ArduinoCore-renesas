@@ -1,22 +1,8 @@
-/***********************************************************************************************************************
- * Copyright [2020-2022] Renesas Electronics Corporation and/or its affiliates.  All Rights Reserved.
- *
- * This software and documentation are supplied by Renesas Electronics America Inc. and may only be used with products
- * of Renesas Electronics Corp. and its affiliates ("Renesas").  No other uses are authorized.  Renesas products are
- * sold pursuant to Renesas terms and conditions of sale.  Purchasers are solely responsible for the selection and use
- * of Renesas products and Renesas assumes no liability.  No license, express or implied, to any intellectual property
- * right is granted by Renesas. This software is protected under all applicable laws, including copyright laws. Renesas
- * reserves the right to change or discontinue this software and/or this documentation. THE SOFTWARE AND DOCUMENTATION
- * IS DELIVERED TO YOU "AS IS," AND RENESAS MAKES NO REPRESENTATIONS OR WARRANTIES, AND TO THE FULLEST EXTENT
- * PERMISSIBLE UNDER APPLICABLE LAW, DISCLAIMS ALL WARRANTIES, WHETHER EXPLICITLY OR IMPLICITLY, INCLUDING WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT, WITH RESPECT TO THE SOFTWARE OR
- * DOCUMENTATION.  RENESAS SHALL HAVE NO LIABILITY ARISING OUT OF ANY SECURITY VULNERABILITY OR BREACH.  TO THE MAXIMUM
- * EXTENT PERMITTED BY LAW, IN NO EVENT WILL RENESAS BE LIABLE TO YOU IN CONNECTION WITH THE SOFTWARE OR DOCUMENTATION
- * (OR ANY PERSON OR ENTITY CLAIMING RIGHTS DERIVED FROM YOU) FOR ANY LOSS, DAMAGES, OR CLAIMS WHATSOEVER, INCLUDING,
- * WITHOUT LIMITATION, ANY DIRECT, CONSEQUENTIAL, SPECIAL, INDIRECT, PUNITIVE, OR INCIDENTAL DAMAGES; ANY LOST PROFITS,
- * OTHER ECONOMIC DAMAGE, PROPERTY DAMAGE, OR PERSONAL INJURY; AND EVEN IF RENESAS HAS BEEN ADVISED OF THE POSSIBILITY
- * OF SUCH LOSS, DAMAGES, CLAIMS OR COSTS.
- **********************************************************************************************************************/
+/*
+* Copyright (c) 2020 - 2024 Renesas Electronics Corporation and/or its affiliates
+*
+* SPDX-License-Identifier: BSD-3-Clause
+*/
 
 #ifndef R_AGT_H
 #define R_AGT_H
@@ -37,19 +23,17 @@ FSP_HEADER
 
 /* Leading zeroes removed to avoid coding standards violation. */
 
-/** Maximum number of clock counts in 16 bit timer. */
-#if BSP_FEATURE_AGT_HAS_AGTW
- #define AGT_MAX_CLOCK_COUNTS    (UINT32_MAX)
-#else
- #define AGT_MAX_CLOCK_COUNTS    (UINT16_MAX)
-#endif
+/** Maximum number of clock counts for standard AGT peripheral. */
+#define AGT_MAX_CLOCK_COUNTS_16BIT    (UINT16_MAX)
 
-/** Maximum period value allowed for AGT. */
-#if BSP_FEATURE_AGT_HAS_AGTW
- #define AGT_MAX_PERIOD          (UINT32_MAX)
-#else
- #define AGT_MAX_PERIOD          (UINT16_MAX + 1U)
-#endif
+/** Maximum number of clock counts for AGTW peripheral. */
+#define AGT_MAX_CLOCK_COUNTS_32BIT    (UINT32_MAX)
+
+/** Maximum period value allowed for standard AGT peripheral. */
+#define AGT_MAX_PERIOD_16BIT          (UINT16_MAX + 1U)
+
+/** Maximum period valud allowed for AGTW peripheral. */
+#define AGT_MAX_PERIOD_32BIT          (UINT32_MAX)
 
 /*******************************************************************************************************************//**
  * @addtogroup AGT
@@ -69,6 +53,7 @@ typedef enum e_agt_clock
     AGT_CLOCK_SUBCLOCK      = 0x60,    ///< Subclock count source, division by 1, 2, 4, 8, 16, 32, 64, or 128 allowed
     AGT_CLOCK_P402          = 0x92,    ///< Counts events on P402, events are counted in deep software standby mode
     AGT_CLOCK_P403          = 0x93,    ///< Counts events on P403, events are counted in deep software standby mode
+    AGT_CLOCK_P404          = 0x91,    ///< Counts events on P404, events are counted in deep software standby mode
     AGT_CLOCK_AGTIO         = 0x80,    ///< Counts events on AGTIOn, events are not counted in software standby modes
 } agt_clock_t;
 
@@ -122,17 +107,22 @@ typedef enum e_agt_pin_cfg
     AGT_PIN_CFG_START_LEVEL_HIGH = 7,  ///< Pin level high
 } agt_pin_cfg_t;
 
+/** Counter type to determine regsiter size */
+typedef enum e_agt_counter_bit_width
+{
+    AGT_COUNTER_BIT_WIDTH_DEFAULT = 0, ///< Legacy
+    AGT_COUNTER_BIT_WIDTH_16      = 1, ///< AGT
+    AGT_COUNTER_BIT_WIDTH_32      = 2, ///< AGTW
+} agt_counter_bit_width_t;
+
 /** Channel control block. DO NOT INITIALIZE.  Initialization occurs when @ref timer_api_t::open is called. */
 typedef struct st_agt_instance_ctrl
 {
     uint32_t            open;                     // Whether or not channel is open
     const timer_cfg_t * p_cfg;                    // Pointer to initial configurations
-#if BSP_FEATURE_AGT_HAS_AGTW
-    R_AGTW0_Type * p_reg;                         // Base register for this channel
-#else
-    R_AGT0_Type * p_reg;                          // Base register for this channel
-#endif
-    uint32_t period;                              // Current timer period (counts)
+    R_AGTX0_Type      * p_reg;                    // Base register for this channel
+    bool                is_agtw;                  // Whether or not this channel is agtw, otherwise it is agt
+    uint32_t            period;                   // Current timer period (counts)
 
     void (* p_callback)(timer_callback_args_t *); // Pointer to callback that is called when a timer_event_t occurs.
     timer_callback_args_t * p_callback_memory;    // Pointer to non-secure memory that can be used to pass arguments to a callback in non-secure memory.
@@ -151,18 +141,19 @@ typedef struct st_agt_extended_cfg
 
         struct
         {
-            agt_pin_cfg_t agtoa : 3;     ///< Configure AGTOA/AGTWOA pin
+            agt_pin_cfg_t agtoa : 3;           ///< Configure AGTOA/AGTWOA pin
             uint8_t             : 1;
-            agt_pin_cfg_t agtob : 3;     ///< Configure AGTOB/AGTWOB pin
+            agt_pin_cfg_t agtob : 3;           ///< Configure AGTOB/AGTWOB pin
         } agtoab_settings_b;
     };
-    agt_pin_cfg_t agto : 3;              ///< Configure AGTO pin @note AGTIO polarity is opposite AGTO
+    agt_pin_cfg_t agto : 3;                    ///< Configure AGTO pin @note AGTIO polarity is opposite AGTO
 
     /* Input pin settings. */
-    agt_measure_t      measurement_mode; ///< Measurement mode
-    agt_agtio_filter_t agtio_filter;     ///< Input filter for AGTIO
-    agt_enable_pin_t   enable_pin;       ///< Enable pin (event counting only)
-    agt_trigger_edge_t trigger_edge;     ///< Trigger edge to start pulse period measurement or count external event
+    agt_measure_t           measurement_mode;  ///< Measurement mode
+    agt_agtio_filter_t      agtio_filter;      ///< Input filter for AGTIO
+    agt_enable_pin_t        enable_pin;        ///< Enable pin (event counting only)
+    agt_trigger_edge_t      trigger_edge;      ///< Trigger edge to start pulse period measurement or count external event
+    agt_counter_bit_width_t counter_bit_width; ///< Counter bit width
 } agt_extended_cfg_t;
 
 /**********************************************************************************************************************
@@ -190,6 +181,9 @@ fsp_err_t R_AGT_CallbackSet(timer_ctrl_t * const          p_api_ctrl,
                             void (                      * p_callback)(timer_callback_args_t *),
                             void const * const            p_context,
                             timer_callback_args_t * const p_callback_memory);
+fsp_err_t R_AGT_CompareMatchSet(timer_ctrl_t * const        p_ctrl,
+                                uint32_t const              compare_match_value,
+                                timer_compare_match_t const match_channel);
 
 /*******************************************************************************************************************//**
  * @} (end defgroup AGT)

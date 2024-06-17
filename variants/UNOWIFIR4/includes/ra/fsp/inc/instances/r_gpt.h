@@ -1,22 +1,8 @@
-/***********************************************************************************************************************
- * Copyright [2020-2022] Renesas Electronics Corporation and/or its affiliates.  All Rights Reserved.
- *
- * This software and documentation are supplied by Renesas Electronics America Inc. and may only be used with products
- * of Renesas Electronics Corp. and its affiliates ("Renesas").  No other uses are authorized.  Renesas products are
- * sold pursuant to Renesas terms and conditions of sale.  Purchasers are solely responsible for the selection and use
- * of Renesas products and Renesas assumes no liability.  No license, express or implied, to any intellectual property
- * right is granted by Renesas. This software is protected under all applicable laws, including copyright laws. Renesas
- * reserves the right to change or discontinue this software and/or this documentation. THE SOFTWARE AND DOCUMENTATION
- * IS DELIVERED TO YOU "AS IS," AND RENESAS MAKES NO REPRESENTATIONS OR WARRANTIES, AND TO THE FULLEST EXTENT
- * PERMISSIBLE UNDER APPLICABLE LAW, DISCLAIMS ALL WARRANTIES, WHETHER EXPLICITLY OR IMPLICITLY, INCLUDING WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT, WITH RESPECT TO THE SOFTWARE OR
- * DOCUMENTATION.  RENESAS SHALL HAVE NO LIABILITY ARISING OUT OF ANY SECURITY VULNERABILITY OR BREACH.  TO THE MAXIMUM
- * EXTENT PERMITTED BY LAW, IN NO EVENT WILL RENESAS BE LIABLE TO YOU IN CONNECTION WITH THE SOFTWARE OR DOCUMENTATION
- * (OR ANY PERSON OR ENTITY CLAIMING RIGHTS DERIVED FROM YOU) FOR ANY LOSS, DAMAGES, OR CLAIMS WHATSOEVER, INCLUDING,
- * WITHOUT LIMITATION, ANY DIRECT, CONSEQUENTIAL, SPECIAL, INDIRECT, PUNITIVE, OR INCIDENTAL DAMAGES; ANY LOST PROFITS,
- * OTHER ECONOMIC DAMAGE, PROPERTY DAMAGE, OR PERSONAL INJURY; AND EVEN IF RENESAS HAS BEEN ADVISED OF THE POSSIBILITY
- * OF SUCH LOSS, DAMAGES, CLAIMS OR COSTS.
- **********************************************************************************************************************/
+/*
+* Copyright (c) 2020 - 2024 Renesas Electronics Corporation and/or its affiliates
+*
+* SPDX-License-Identifier: BSD-3-Clause
+*/
 
 #ifndef R_GPT_H
 #define R_GPT_H
@@ -359,15 +345,15 @@ typedef struct st_gpt_extended_pwm_cfg
     gpt_interrupt_skip_source_t interrupt_skip_source;  ///< Interrupt source to count for interrupt skipping
     gpt_interrupt_skip_count_t  interrupt_skip_count;   ///< Number of interrupts to skip between events
     gpt_interrupt_skip_adc_t    interrupt_skip_adc;     ///< ADC events to skip when interrupt skipping is enabled
-    gpt_gtioc_disable_t         gtioca_disable_setting; ///< DEPRECATED - Select how to configure GTIOCA when output is disabled
-    gpt_gtioc_disable_t         gtiocb_disable_setting; ///< DEPRECATED - Select how to configure GTIOCB when output is disabled
+    gpt_gtioc_disable_t         gtioca_disable_setting; ///< Select how to configure GTIOCA when output is disabled
+    gpt_gtioc_disable_t         gtiocb_disable_setting; ///< Select how to configure GTIOCB when output is disabled
 } gpt_extended_pwm_cfg_t;
 
 /** GPT extension configures the output pins for GPT. */
 typedef struct st_gpt_extended_cfg
 {
-    gpt_output_pin_t gtioca;           ///< DEPRECATED - Configuration for GPT I/O pin A
-    gpt_output_pin_t gtiocb;           ///< DEPRECATED - Configuration for GPT I/O pin B
+    gpt_output_pin_t gtioca;           ///< Configuration for GPT I/O pin A
+    gpt_output_pin_t gtiocb;           ///< Configuration for GPT I/O pin B
     gpt_source_t     start_source;     ///< Event sources that trigger the timer to start
     gpt_source_t     stop_source;      ///< Event sources that trigger the timer to stop
     gpt_source_t     clear_source;     ///< Event sources that trigger the timer to clear
@@ -382,16 +368,20 @@ typedef struct st_gpt_extended_cfg
      * and count_down_source, then the timer count source is PCLK.  */
     gpt_source_t count_down_source;
 
-    /* Debounce filter for GTIOCxA input signal pin (DEPRECATED). */
+    /* Debounce filter for GTIOCxA input signal pin. */
     gpt_capture_filter_t capture_filter_gtioca;
 
-    /* Debounce filter for GTIOCxB input signal pin (DEPRECATED). */
+    /* Debounce filter for GTIOCxB input signal pin. */
     gpt_capture_filter_t capture_filter_gtiocb;
 
     uint8_t   capture_a_ipl;                      ///< Capture A interrupt priority
     uint8_t   capture_b_ipl;                      ///< Capture B interrupt priority
     IRQn_Type capture_a_irq;                      ///< Capture A interrupt
     IRQn_Type capture_b_irq;                      ///< Capture B interrupt
+
+    uint32_t compare_match_value[2];              ///< Storing compare match value for channels
+    uint8_t  compare_match_status;                ///< Storing the compare match register status
+
     gpt_extended_pwm_cfg_t const * p_pwm_cfg;     ///< Advanced PWM features, optional
     gpt_gtior_setting_t            gtior_setting; ///< Custom GTIOR settings used for configuring GTIOCxA and GTIOCxB pins.
 } gpt_extended_cfg_t;
@@ -434,7 +424,10 @@ fsp_err_t R_GPT_CallbackSet(timer_ctrl_t * const          p_api_ctrl,
                             void const * const            p_context,
                             timer_callback_args_t * const p_callback_memory);
 fsp_err_t R_GPT_Close(timer_ctrl_t * const p_ctrl);
-fsp_err_t R_GPT_PwmOutputDelayInitialize();
+fsp_err_t R_GPT_PwmOutputDelayInitialize(void);
+fsp_err_t R_GPT_CompareMatchSet(timer_ctrl_t * const        p_ctrl,
+                                uint32_t const              compare_match_value,
+                                timer_compare_match_t const match_channel);
 
 /*******************************************************************************************************************//**
  * @} (end defgroup GPT)

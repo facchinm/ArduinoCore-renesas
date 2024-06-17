@@ -1,31 +1,21 @@
-/***********************************************************************************************************************
- * Copyright [2020-2022] Renesas Electronics Corporation and/or its affiliates.  All Rights Reserved.
- *
- * This software and documentation are supplied by Renesas Electronics America Inc. and may only be used with products
- * of Renesas Electronics Corp. and its affiliates ("Renesas").  No other uses are authorized.  Renesas products are
- * sold pursuant to Renesas terms and conditions of sale.  Purchasers are solely responsible for the selection and use
- * of Renesas products and Renesas assumes no liability.  No license, express or implied, to any intellectual property
- * right is granted by Renesas. This software is protected under all applicable laws, including copyright laws. Renesas
- * reserves the right to change or discontinue this software and/or this documentation. THE SOFTWARE AND DOCUMENTATION
- * IS DELIVERED TO YOU "AS IS," AND RENESAS MAKES NO REPRESENTATIONS OR WARRANTIES, AND TO THE FULLEST EXTENT
- * PERMISSIBLE UNDER APPLICABLE LAW, DISCLAIMS ALL WARRANTIES, WHETHER EXPLICITLY OR IMPLICITLY, INCLUDING WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT, WITH RESPECT TO THE SOFTWARE OR
- * DOCUMENTATION.  RENESAS SHALL HAVE NO LIABILITY ARISING OUT OF ANY SECURITY VULNERABILITY OR BREACH.  TO THE MAXIMUM
- * EXTENT PERMITTED BY LAW, IN NO EVENT WILL RENESAS BE LIABLE TO YOU IN CONNECTION WITH THE SOFTWARE OR DOCUMENTATION
- * (OR ANY PERSON OR ENTITY CLAIMING RIGHTS DERIVED FROM YOU) FOR ANY LOSS, DAMAGES, OR CLAIMS WHATSOEVER, INCLUDING,
- * WITHOUT LIMITATION, ANY DIRECT, CONSEQUENTIAL, SPECIAL, INDIRECT, PUNITIVE, OR INCIDENTAL DAMAGES; ANY LOST PROFITS,
- * OTHER ECONOMIC DAMAGE, PROPERTY DAMAGE, OR PERSONAL INJURY; AND EVEN IF RENESAS HAS BEEN ADVISED OF THE POSSIBILITY
- * OF SUCH LOSS, DAMAGES, CLAIMS OR COSTS.
- **********************************************************************************************************************/
+/*
+* Copyright (c) 2020 - 2024 Renesas Electronics Corporation and/or its affiliates
+*
+* SPDX-License-Identifier: BSD-3-Clause
+*/
 #ifndef R_USB_BASIC_DEFINE_H
  #define R_USB_BASIC_DEFINE_H
 
  #include "r_usb_basic_cfg.h"
 
- #define USB_CFG_LITTLE    (0U)
- #define USB_CFG_BIG       (1U)
+ #define USB_CFG_LITTLE     (0U)
+ #define USB_CFG_BIG        (1U)
 
- #define USB_CFG_ENDIAN    (USB_CFG_LITTLE)
+ #define USB_NOT_SUPPORT    (0U)
+ #define USB_FS_MODULE      (1U)
+ #define USB_HS_MODULE      (2U)
+
+ #define USB_CFG_ENDIAN     (USB_CFG_LITTLE)
 
  #if defined(USB_DEBUG_ON)
   #include    <stdlib.h>               /* @@@MISRA del */
@@ -36,11 +26,116 @@
 extern "C" {
  #endif
 
- #define R_USB_HmscTask           usb_hmsc_task
+ #define R_USB_HmscTask    usb_hmsc_task
 
 /**********************************************************************************************************************
  * Macro definitions
  **********************************************************************************************************************/
+ #if defined(BSP_MCU_GROUP_RA6M5) || defined(BSP_MCU_GROUP_RA6M3) || defined(BSP_MCU_GROUP_RA8M1) || defined(BSP_MCU_GROUP_RA8D1)
+
+  #define USB_HIGH_SPEED_MODULE
+  #define USB_IP0_MODULE    USB_FS_MODULE
+  #define USB_IP1_MODULE    USB_HS_MODULE
+
+  #define USB_NUM_USBIP     (2U)
+
+ #endif                                /* defined(BSP_MCU_GROUP_RA6M5) || defined(BSP_MCU_GROUP_RA6M3) */
+
+ #if defined(BSP_MCU_GROUP_RA2A1) || defined(BSP_MCU_GROUP_RA6E2) || defined(BSP_MCU_GROUP_RA6T3) || \
+    defined(BSP_MCU_GROUP_RA4E2) || defined(BSP_MCU_GROUP_RA6E1) || defined(BSP_MCU_GROUP_RA4E1)     \
+    || defined(BSP_MCU_GROUP_RA4M1) || defined(BSP_MCU_GROUP_RA4M2) || defined(BSP_MCU_GROUP_RA4M3)  \
+    || defined(BSP_MCU_GROUP_RA4W1) || defined(BSP_MCU_GROUP_RA6M1) || defined(BSP_MCU_GROUP_RA6M2)  \
+    || defined(BSP_MCU_GROUP_RA6M4) || defined(BSP_MCU_GROUP_RA8T1)
+
+  #define USB_IP0_MODULE    USB_FS_MODULE
+  #define USB_IP1_MODULE    USB_NOT_SUPPORT
+
+  #define USB_NUM_USBIP     (1U)
+ #endif                                /* defined(BSP_MCU_GROUP_RA2A1 || defined(BSP_MCU_GROUP_RA6E2) || defined(BSP_MCU_GROUP_RA6T3) || defined(BSP_MCU_GROUP_RA4E2) */
+
+ #if defined(BSP_MCU_GROUP_RA2A1) || defined(BSP_MCU_GROUP_RA6E2) || defined(BSP_MCU_GROUP_RA6T3) || \
+    defined(BSP_MCU_GROUP_RA4E2)
+
+  #define USB_SUPPORT_MINI_MODULE
+  #define USB_NOT_SUPPORT_HOST
+  #define USB_NOT_SUPPORT_DMAC
+
+ #endif                                      /* defined(BSP_MCU_GROUP_RA2A1) || defined(BSP_MCU_GROUP_RA6E2) || defined(BSP_MCU_GROUP_RA6T3) || defined(BSP_MCU_GROUP_RA4E2) */
+
+ #if defined(BSP_MCU_GROUP_RA2A1) || defined(BSP_MCU_GROUP_RA4W1)
+
+  #define USB_SUPPORT_PERI_LS                /* USB Peripheral Low-speed Support Module */
+
+ #endif                                      /* defined(BSP_MCU_GROUP_RA2A1) */
+
+ #if defined(BSP_MCU_GROUP_RA2A1)
+
+  #define USB_UNALIGNED_MEMORY_ACCESS_NG_MCU /* Coretex M23 etc */
+
+ #endif                                      /* defined(BSP_MCU_GROUP_RA2A1) */
+
+ #if defined(BSP_MCU_GROUP_RA2A1)
+
+  #define USB_SUPPORT_HOCO_MODULE            /* UCKSELC bit */
+
+ #endif                                      /* defined(BSP_MCU_GROUP_RA2A1) */
+
+ #if defined(BSP_MCU_GROUP_RA2A1) || defined(BSP_MCU_GROUP_RA4M1)
+
+  #define USB_LDO_REGULATOR_MODULE           /* VDCEN bit */
+
+ #endif                                      /* (BSP_MCU_GROUP_RA2A1) || defined(BSP_MCU_GROUP_RA4M1) */
+
+ #if defined(BSP_MCU_GROUP_RA4M1) || defined(BSP_MCU_GROUP_RA4W1) || defined(BSP_MCU_GROUP_RA2A1)
+
+  #define USB_SUPPORT_VDDUSBE                /* VDDUSBE bit */
+
+ #endif                                      /* defined(BSP_MCU_GROUP_RA4M1) || defined(BSP_MCU_GROUP_RA4W1) || defined(BSP_MCU_GROUP_RA2A1) */
+
+ #if defined(BSP_MCU_GROUP_RA6M3) || defined(BSP_MCU_GROUP_RA6M2) || defined(BSP_MCU_GROUP_RA6M1)
+
+  #define USB_SUPPORT_PHYSLEW                /* PHYSLEW bit */
+
+ #endif                                      /* defined(BSP_MCU_GROUP_RA6M3) || defined(BSP_MCU_GROUP_RA6M2) || defined(BSP_MCU_GROUP_RA6M1) */
+
+ #if defined(BSP_MCU_GROUP_RA6M3) || defined(BSP_MCU_GROUP_RA6M2) || defined(BSP_MCU_GROUP_RA6M1)
+
+  #define USB_PHYSLEW_VALUE    (0xEU)
+
+ #endif                                /* defined(BSP_MCU_GROUP_RA6M3) || defined(BSP_MCU_GROUP_RA6M2) || defined(BSP_MCU_GROUP_RA6M1) */
+
+ #if defined(BSP_MCU_GROUP_RA6M3) || (BSP_CFG_MCU_PART_SERIES == 8)
+
+  #define USB_CNEN_SYSCFG_USB_IP1      /* CNEN bit */
+  #define USB_SUPPORT_BC_HS            /* Battery Charging in High-speed module */
+
+ #endif                                /* defined(BSP_MCU_GROUP_RA6M3) || (BSP_CFG_MCU_PART_SERIES == 8) */
+
+ #if defined(BSP_MCU_GROUP_RA2A1)
+
+  #define USB_CNEN_SYSCFG_USB_IP0      /* CNEN bit */
+  #define USB_SUPPORT_BC_FS            /* Battery Charging in Full-speed module*/
+
+ #endif                                /* defined(USB_SUPPORT_MINI_MODULE) */                            /* defined(BSP_MCU_GROUP_RA2A1 */
+
+ #if defined(BSP_MCU_GROUP_RA6E2) || defined(BSP_MCU_GROUP_RA6T3) || defined(BSP_MCU_GROUP_RA4E2)   \
+    || defined(BSP_MCU_GROUP_RA4M1) || defined(BSP_MCU_GROUP_RA4M2) || defined(BSP_MCU_GROUP_RA4M3) \
+    || defined(BSP_MCU_GROUP_RA4W1) || defined(BSP_MCU_GROUP_RA6M5)                                 \
+    || defined(BSP_MCU_GROUP_RA6M4) || defined(BSP_MCU_GROUP_RA6E1) || defined(BSP_MCU_GROUP_RA4E1)
+
+  #define USB_CNEN_PHYSECTRL_USB_IP0   /* CNEN bit */
+
+  #if defined(BSP_MCU_GROUP_RA6M5)
+   #define USB_SUPPORT_BC_HS           /* Battery Charging in High-speed module */
+   #define USB_SUPPORT_BC_FS           /* Battery Charging in Full-speed module */
+  #endif                               /* defined(BSP_MCU_GROUP_RA6M5) */
+
+  #if defined(BSP_MCU_GROUP_RA4M1) || defined(BSP_MCU_GROUP_RA4M2) || defined(BSP_MCU_GROUP_RA4M3)     \
+    || defined(BSP_MCU_GROUP_RA4W1) || defined(BSP_MCU_GROUP_RA6M4) || defined(BSP_MCU_GROUP_RA6E1) || \
+    defined(BSP_MCU_GROUP_RA4E1)
+   #define USB_SUPPORT_BC_FS
+  #endif                               /* defined(BSP_MCU_GROUP_RA4M1) || defined(BSP_MCU_GROUP_RA4M2) || defined(BSP_MCU_GROUP_RA4M3) */
+ #endif                                /* defined(BSP_MCU_GROUP_RA6E2) || defined(BSP_MCU_GROUP_RA6T3) || defined(BSP_MCU_GROUP_RA4E2) */
 
 /* Version Number of API. */
  #define USB_VERSION_MAJOR        (1)
@@ -50,9 +145,9 @@ extern "C" {
  #if (BSP_CFG_RTOS != 0)
 
 /* The buffer size of interrupt info is increased to avoid overlapping interrupt events. */
-  #define USB_INT_BUFSIZE         (32U)  /* Size of Interrupt info buffer */
+  #define USB_INT_BUFSIZE         (8U)   /* Size of Interrupt info buffer */
  #else /* #if (BSP_CFG_RTOS != 0) */
-  #define USB_INT_BUFSIZE         (10U)  /* Size of Interrupt info buffer */
+  #define USB_INT_BUFSIZE         (8U)   /* Size of Interrupt info buffer */
  #endif /* #if (BSP_CFG_RTOS != 0) */
  #define USB_EVENT_MAX            (10)
 
@@ -212,9 +307,6 @@ extern "C" {
  * Macro definitions
  ******************************************************************************/
 
-/* The number of USBIP */
- #define USB_NUM_USBIP                          (2U)
-
 /* USB module definition */
  #define USB_M0                                 (R_USB_FS0)
 
@@ -242,19 +334,19 @@ extern "C" {
  #define USB1_D1FIFO_MBW                        (USB_MBW_32)
 
 /* Start Pipe No */
- #if defined(BSP_MCU_GROUP_RA2A1)
+ #if defined(USB_SUPPORT_MINI_MODULE)
   #define USB_MIN_PIPE_NO                       (4U)
   #define USB_MAXPIPE_BULK                      (5U)
   #define USB_BULK_PIPE_START                   (4U)
   #define USB_INT_PIPE_END                      (7U)
   #define USB_MAX_PIPE_NO                       (7U) /* PIPE4 ... PIPE7 */
- #else
+ #else  /* defined(USB_MINI_MODULE_DMAC) || defined(USB_MINI_MODULE_NO_DMAC) */
   #define USB_MIN_PIPE_NO                       (1U)
   #define USB_MAXPIPE_BULK                      (5U)
   #define USB_BULK_PIPE_START                   (1U)
   #define USB_INT_PIPE_END                      (9U)
   #define USB_MAX_PIPE_NO                       (9U) /* PIPE0 ... PIPE9 */
- #endif
+ #endif /* defined(USB_MINI_MODULE_DMAC) || defined(USB_MINI_MODULE_NO_DMAC) */
 
  #define USB_MAXPIPE_NUM                        (9U)
  #define USB_INT_PIPE_START                     (6U)
@@ -299,6 +391,7 @@ extern "C" {
  #define USB_CFG_20MHZ                          (1)
  #define USB_CFG_OTHER                          (2)
  #define USB_CFG_12MHZ                          (3)
+ #define USB_CFG_48MHZ                          (4)
 
 /* Channel Number */
  #define USB_CFG_CH0                            (0U)
@@ -860,11 +953,15 @@ extern "C" {
  #define USB_REL_BLK(ID, BLK)          (usb_cstd_rel_blk((uint8_t) (ID), (usb_utr_t *) (BLK)))
 
 /* Descriptor size */
- #define USB_DEVICESIZE    (20U)       /* Device Descriptor size */
- #define USB_CONFIGSIZE    (256U)      /* Configuration Descriptor size */
+ #define USB_DEVICESIZE     (20U)      /* Device Descriptor size */
+ #ifdef USB_CFG_HUVC_USE
+  #define USB_CONFIGSIZE    (3 * 1024) /* Configuration Descriptor size */
+ #else
+  #define USB_CONFIGSIZE    (1 * 1024) /* Configuration Descriptor size */
+ #endif /* USB_CFG_HUVC_USE */
 
 /* Number of software retries when a no-response condition occurs during a transfer */
- #define USB_PIPEERROR     (1U)
+ #define USB_PIPEERROR      (1U)
 
 /** [Output debugging message in a console of IDE.]
  *   not defined(USB_DEBUG_ON) : No output the debugging message

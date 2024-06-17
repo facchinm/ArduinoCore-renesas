@@ -1,38 +1,22 @@
-/***********************************************************************************************************************
- * Copyright [2020-2022] Renesas Electronics Corporation and/or its affiliates.  All Rights Reserved.
- *
- * This software and documentation are supplied by Renesas Electronics America Inc. and may only be used with products
- * of Renesas Electronics Corp. and its affiliates ("Renesas").  No other uses are authorized.  Renesas products are
- * sold pursuant to Renesas terms and conditions of sale.  Purchasers are solely responsible for the selection and use
- * of Renesas products and Renesas assumes no liability.  No license, express or implied, to any intellectual property
- * right is granted by Renesas. This software is protected under all applicable laws, including copyright laws. Renesas
- * reserves the right to change or discontinue this software and/or this documentation. THE SOFTWARE AND DOCUMENTATION
- * IS DELIVERED TO YOU "AS IS," AND RENESAS MAKES NO REPRESENTATIONS OR WARRANTIES, AND TO THE FULLEST EXTENT
- * PERMISSIBLE UNDER APPLICABLE LAW, DISCLAIMS ALL WARRANTIES, WHETHER EXPLICITLY OR IMPLICITLY, INCLUDING WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT, WITH RESPECT TO THE SOFTWARE OR
- * DOCUMENTATION.  RENESAS SHALL HAVE NO LIABILITY ARISING OUT OF ANY SECURITY VULNERABILITY OR BREACH.  TO THE MAXIMUM
- * EXTENT PERMITTED BY LAW, IN NO EVENT WILL RENESAS BE LIABLE TO YOU IN CONNECTION WITH THE SOFTWARE OR DOCUMENTATION
- * (OR ANY PERSON OR ENTITY CLAIMING RIGHTS DERIVED FROM YOU) FOR ANY LOSS, DAMAGES, OR CLAIMS WHATSOEVER, INCLUDING,
- * WITHOUT LIMITATION, ANY DIRECT, CONSEQUENTIAL, SPECIAL, INDIRECT, PUNITIVE, OR INCIDENTAL DAMAGES; ANY LOST PROFITS,
- * OTHER ECONOMIC DAMAGE, PROPERTY DAMAGE, OR PERSONAL INJURY; AND EVEN IF RENESAS HAS BEEN ADVISED OF THE POSSIBILITY
- * OF SUCH LOSS, DAMAGES, CLAIMS OR COSTS.
- **********************************************************************************************************************/
+/*
+* Copyright (c) 2020 - 2024 Renesas Electronics Corporation and/or its affiliates
+*
+* SPDX-License-Identifier: BSD-3-Clause
+*/
 
 #ifndef R_RTC_API_H
 #define R_RTC_API_H
 
 /*******************************************************************************************************************//**
- * @ingroup RENESAS_INTERFACES
+ * @ingroup RENESAS_TIMERS_INTERFACES
  * @defgroup RTC_API RTC Interface
  * @brief Interface for accessing the Realtime Clock.
  *
  *
  * @section RTC_API_Summary Summary
- * The RTC Interface is for configuring Real Time Clock (RTC) functionality including alarm, periodic notiification and
+ * The RTC Interface is for configuring Real Time Clock (RTC) functionality including alarm, periodic notification and
  * error adjustment.
  *
- * The  Real Time Clock Interface can be implemented by:
- * - @ref RTC
  *
  * @{
  **********************************************************************************************************************/
@@ -57,13 +41,23 @@ FSP_HEADER
 /**********************************************************************************************************************
  * Typedef definitions
  **********************************************************************************************************************/
+#ifndef BSP_OVERRIDE_RTC_EVENT_T
 
 /** Events that can trigger a callback function */
 typedef enum e_rtc_event
 {
-    RTC_EVENT_ALARM_IRQ,               ///< Real Time Clock ALARM IRQ
+    RTC_EVENT_ALARM_IRQ,               ///< Real Time Clock ALARM 0 IRQ
+    RTC_EVENT_ALARM1_IRQ,              ///< Real Time Clock ALARM 1 IRQ
     RTC_EVENT_PERIODIC_IRQ,            ///< Real Time Clock PERIODIC IRQ
 } rtc_event_t;
+#endif
+
+/** RTC alarm channel */
+typedef enum e_rtc_alarm_channel
+{
+    RTC_ALARM_CHANNEL_0,
+    RTC_ALARM_CHANNEL_1,
+} rtc_alarm_channel_t;
 
 /** Callback function parameter data */
 typedef struct st_rtc_callback_args
@@ -75,8 +69,9 @@ typedef struct st_rtc_callback_args
 /** Clock source for the RTC block */
 typedef enum e_rtc_count_source
 {
-    RTC_CLOCK_SOURCE_SUBCLK = 0,       ///< Sub-clock oscillator
-    RTC_CLOCK_SOURCE_LOCO   = 1        ///< Low power On Chip Oscillator
+    RTC_CLOCK_SOURCE_SUBCLK  = 0,      ///< Sub-clock oscillator
+    RTC_CLOCK_SOURCE_LOCO    = 1,      ///< Low power On Chip Oscillator
+    RTC_CLOCK_SOURCE_MAINCLK = 2       ///< Main clock oscillator
 } rtc_clock_source_t;
 
 /** RTC run state */
@@ -107,6 +102,7 @@ typedef enum e_rtc_error_adjustment_period
     RTC_ERROR_ADJUSTMENT_PERIOD_1_MINUTE  = 0, ///< Adjustment period is set to every one minute
     RTC_ERROR_ADJUSTMENT_PERIOD_10_SECOND = 1, ///< Adjustment period is set to every ten second
     RTC_ERROR_ADJUSTMENT_PERIOD_NONE      = 2, ///< Adjustment period not supported in manual mode
+    RTC_ERROR_ADJUSTMENT_PERIOD_20_SECOND = 3, ///< Adjustment period is set to every twenty seconds
 } rtc_error_adjustment_period_t;
 
 /** Time error adjustment value configuration */
@@ -117,6 +113,8 @@ typedef struct st_rtc_error_adjustment_cfg
     rtc_error_adjustment_t        adjustment_type;   ///< Time error adjustment setting
     uint32_t adjustment_value;                       ///< Value of the prescaler for error adjustment
 } rtc_error_adjustment_cfg_t;
+
+#ifndef BSP_OVERRIDE_RTC_PERIODIC_IRQ_SELECT_T
 
 /** Periodic Interrupt select */
 typedef enum e_rtc_periodic_irq_select
@@ -131,23 +129,77 @@ typedef enum e_rtc_periodic_irq_select
     RTC_PERIODIC_IRQ_SELECT_1_DIV_BY_2_SECOND   = 13, ///< A periodic irq is generated every 1/2 second
     RTC_PERIODIC_IRQ_SELECT_1_SECOND            = 14, ///< A periodic irq is generated every 1 second
     RTC_PERIODIC_IRQ_SELECT_2_SECOND            = 15, ///< A periodic irq is generated every 2 seconds
+    RTC_PERIODIC_IRQ_SELECT_1_MINUTE            = 16, ///< A periodic irq is generated every 1 minute
+    RTC_PERIODIC_IRQ_SELECT_1_HOUR              = 17, ///< A periodic irq is generated every 1 hour
+    RTC_PERIODIC_IRQ_SELECT_1_DAY               = 18, ///< A periodic irq is generated every 1 day
+    RTC_PERIODIC_IRQ_SELECT_1_MONTH             = 19, ///< A periodic irq is generated every 1 month
 } rtc_periodic_irq_select_t;
+#endif
+
+/** Time capture trigger source */
+typedef enum e_rtc_time_capture_source
+{
+    RTC_TIME_CAPTURE_SOURCE_DISABLED    = 0, ///< Disable trigger
+    RTC_TIME_CAPTURE_SOURCE_PIN_RISING  = 1, ///< Rising edge pin trigger
+    RTC_TIME_CAPTURE_SOURCE_PIN_FALLING = 2, ///< Falling edge pin trigger
+    RTC_TIME_CAPTURE_SOURCE_PIN_BOTH    = 3, ///< Both edges pin trigger
+    RTC_TIME_CAPTURE_SOURCE_SOFTWARE    = 4, ///< Software trigger
+    RTC_TIME_CAPTURE_SOURCE_ELC_EVENT   = 5, ///< ELC event trigger
+} rtc_time_capture_source_t;
+
+/** Time capture trigger mode */
+typedef enum e_rtc_time_capture_mode
+{
+    RTC_TIME_CAPTURE_MODE_CONTINUOUS  = 0, ///< Continuous capturing to all capturing channels
+    RTC_TIME_CAPTURE_MODE_ONE_SHOT    = 1, ///< Single capture to a particular channel
+} rtc_time_capture_mode_t;
+
+/** Time capture noise filter control */
+typedef enum e_rtc_time_capture_noise_filter
+{
+    RTC_TIME_CAPTURE_NOISE_FILTER_OFF             = 0, ///< Turn noise filter off
+    RTC_TIME_CAPTURE_NOISE_FILTER_ON              = 2, ///< Turn noise filter on (count source)
+    RTC_TIME_CAPTURE_NOISE_FILTER_ON_DIVIDER_32   = 3, ///< Turn noise filter on (count source by divided by 32)
+    RTC_TIME_CAPTURE_NOISE_FILTER_ON_DIVIDER_4096 = 4, ///< Turn noise filter on (count source by divided by 4096)
+    RTC_TIME_CAPTURE_NOISE_FILTER_ON_DIVIDER_8192 = 5, ///< Turn noise filter on (count source by divided by 8192)
+} rtc_time_capture_noise_filter_t;
 
 /** Date and time structure defined in C standard library <time.h> */
 typedef struct tm rtc_time_t;
 
+#ifndef BSP_OVERRIDE_RTC_ALARM_TIME_T
+
 /** Alarm time setting structure */
 typedef struct st_rtc_alarm_time
 {
-    rtc_time_t time;                   ///< Time structure
-    bool       sec_match;              ///< Enable the alarm based on a match of the seconds field
-    bool       min_match;              ///< Enable the alarm based on a match of the minutes field
-    bool       hour_match;             ///< Enable the alarm based on a match of the hours field
-    bool       mday_match;             ///< Enable the alarm based on a match of the days field
-    bool       mon_match;              ///< Enable the alarm based on a match of the months field
-    bool       year_match;             ///< Enable the alarm based on a match of the years field
-    bool       dayofweek_match;        ///< Enable the alarm based on a match of the dayofweek field
+    rtc_time_t          time;            ///< Time structure
+    bool                sec_match;       ///< Enable the alarm based on a match of the seconds field
+    bool                min_match;       ///< Enable the alarm based on a match of the minutes field
+    bool                hour_match;      ///< Enable the alarm based on a match of the hours field
+    bool                mday_match;      ///< Enable the alarm based on a match of the days field
+    bool                mon_match;       ///< Enable the alarm based on a match of the months field
+    bool                year_match;      ///< Enable the alarm based on a match of the years field
+    bool                dayofweek_match; ///< Enable the alarm based on a match of the dayofweek field
+    bool                sunday_match;    ///< Enable the alarm on Sunday
+    bool                monday_match;    ///< Enable the alarm on Monday
+    bool                tuesday_match;   ///< Enable the alarm on Tuesday
+    bool                wednesday_match; ///< Enable the alarm on Wednesday
+    bool                thursday_match;  ///< Enable the alarm on Thursday
+    bool                friday_match;    ///< Enable the alarm on Friday
+    bool                saturday_match;  ///< Enable the alarm on Saturday
+    rtc_alarm_channel_t channel;         ///< Select alarm 0 or alarm 1
 } rtc_alarm_time_t;
+#endif
+
+/** Time capture configuration structure */
+typedef struct st_rtc_time_capture
+{
+    rtc_time_t                      time;             ///< Time structure
+    uint8_t                         channel;          ///< Capture channel
+    rtc_time_capture_source_t       source;           ///< Trigger source
+    rtc_time_capture_noise_filter_t noise_filter;     ///< Noise filter
+    rtc_time_capture_mode_t         mode;             ///< Capture mode
+} rtc_time_capture_t;
 
 /** RTC Information Structure for information returned by  infoGet() */
 typedef struct st_rtc_info
@@ -160,7 +212,7 @@ typedef struct st_rtc_info
 typedef struct st_rtc_cfg
 {
     rtc_clock_source_t clock_source;                    ///< Clock source for the RTC block
-    uint32_t           freq_compare_value_loco;         ///< The frequency comparison value for LOCO
+    uint32_t           freq_compare_value;              ///< The frequency comparison value
     rtc_error_adjustment_cfg_t const * const p_err_cfg; ///< Pointer to Error Adjustment configuration
     uint8_t   alarm_ipl;                                ///< Alarm interrupt priority
     IRQn_Type alarm_irq;                                ///< Alarm interrupt vector
@@ -174,8 +226,6 @@ typedef struct st_rtc_cfg
 } rtc_cfg_t;
 
 /** RTC control block.  Allocate an instance specific control block to pass into the RTC API calls.
- * @par Implemented as
- * - @ref rtc_instance_ctrl_t
  */
 typedef void rtc_ctrl_t;
 
@@ -183,8 +233,6 @@ typedef void rtc_ctrl_t;
 typedef struct st_rtc_api
 {
     /** Open the RTC driver.
-     * @par Implemented as
-     * - @ref R_RTC_Open()
      *
      * @param[in] p_ctrl     Pointer to RTC device handle
      * @param[in] p_cfg      Pointer to the configuration structure
@@ -192,34 +240,25 @@ typedef struct st_rtc_api
     fsp_err_t (* open)(rtc_ctrl_t * const p_ctrl, rtc_cfg_t const * const p_cfg);
 
     /** Close the RTC driver.
-     * @par Implemented as
-     * - @ref R_RTC_Close()
      *
      * @param[in] p_ctrl     Pointer to RTC device handle.
      */
     fsp_err_t (* close)(rtc_ctrl_t * const p_ctrl);
 
     /** Sets the RTC clock source.
-     * @par Implemented as
-     * - @ref R_RTC_ClockSourceSet()
      *
      * @param[in] p_ctrl     Pointer to RTC device handle
      */
     fsp_err_t (* clockSourceSet)(rtc_ctrl_t * const p_ctrl);
 
-    /** Set the calendar time and start the calender counter
-     * @par Implemented as
-     * - @ref R_RTC_CalendarTimeSet()
+    /** Set the calendar time and start the calendar counter
      *
      * @param[in] p_ctrl      Pointer to RTC device handle
      * @param[in] p_time      Pointer to a time structure that contains the time to set
-     * @param[in] clock_start Flag that starts the clock right after it is set
      */
     fsp_err_t (* calendarTimeSet)(rtc_ctrl_t * const p_ctrl, rtc_time_t * const p_time);
 
     /** Get the calendar time.
-     * @par Implemented as
-     * - @ref R_RTC_CalendarTimeGet()
      *
      * @param[in] p_ctrl      Pointer to RTC device handle
      * @param[out] p_time     Pointer to a time structure that contains the time to get
@@ -227,18 +266,13 @@ typedef struct st_rtc_api
     fsp_err_t (* calendarTimeGet)(rtc_ctrl_t * const p_ctrl, rtc_time_t * const p_time);
 
     /** Set the calendar alarm time and enable the alarm interrupt.
-     * @par Implemented as
-     * - @ref R_RTC_CalendarAlarmSet()
      *
      * @param[in] p_ctrl                 Pointer to RTC device handle
      * @param[in] p_alarm                Pointer to an alarm structure that contains the alarm time to set
-     * @param[in] irq_enable_flag        Enable the ALARM irq if set
      */
     fsp_err_t (* calendarAlarmSet)(rtc_ctrl_t * const p_ctrl, rtc_alarm_time_t * const p_alarm);
 
     /** Get the calendar alarm time.
-     * @par Implemented as
-     * - @ref R_RTC_CalendarAlarmGet()
      *
      * @param[in] p_ctrl       Pointer to RTC device handle
      * @param[out] p_alarm     Pointer to an alarm structure to fill up with the alarm time
@@ -246,8 +280,6 @@ typedef struct st_rtc_api
     fsp_err_t (* calendarAlarmGet)(rtc_ctrl_t * const p_ctrl, rtc_alarm_time_t * const p_alarm);
 
     /** Set the periodic irq rate
-     * @par Implemented as
-     * - @ref R_RTC_PeriodicIrqRateSet()
      *
      * @param[in] p_ctrl       Pointer to RTC device handle
      * @param[in] rate         Rate of periodic interrupts
@@ -256,8 +288,6 @@ typedef struct st_rtc_api
 
     /** Set time error adjustment.
      *
-     * @par Implemented as
-     * - @ref R_RTC_ErrorAdjustmentSet()
      *
      * @param[in]  p_ctrl        Pointer to control handle structure
      * @param[in]  err_adj_cfg   Pointer to the Error Adjustment Config
@@ -266,8 +296,6 @@ typedef struct st_rtc_api
 
     /**
      * Specify callback function and optional context pointer and working memory pointer.
-     * @par Implemented as
-     * - R_RTC_CallbackSet()
      *
      * @param[in]   p_ctrl                   Pointer to the RTC control block.
      * @param[in]   p_callback               Callback function
@@ -279,13 +307,25 @@ typedef struct st_rtc_api
 
     /** Return the currently configure clock source for the RTC
      *
-     * @par Implemented as
-     * - @ref R_RTC_InfoGet()
      *
      * @param[in]   p_ctrl       Pointer to control handle structure
      * @param[out]  p_rtc_info   Pointer to RTC information structure
      */
     fsp_err_t (* infoGet)(rtc_ctrl_t * const p_ctrl, rtc_info_t * const p_rtc_info);
+
+    /** Config Time capture
+     *
+     * @param[in] p_ctrl             Pointer to RTC device handle
+     * @param[in] p_time_capture     Pointer to a time capture structure that contains the configuration
+     */
+    fsp_err_t (* timeCaptureSet)(rtc_ctrl_t * const p_ctrl, rtc_time_capture_t * const p_time_capture);
+
+    /** Get the capture time and clear bit status.
+     *
+     * @param[in]  p_ctrl             Pointer to RTC device handle
+     * @param[out] p_time_capture     Pointer to a time capture structure to fill up with the time capture
+     */
+    fsp_err_t (* timeCaptureGet)(rtc_ctrl_t * const p_ctrl, rtc_time_capture_t * const p_time_capture);
 } rtc_api_t;
 
 /** This structure encompasses everything that is needed to use an instance of this interface. */
@@ -297,7 +337,7 @@ typedef struct st_rtc_instance
 } rtc_instance_t;
 
 /*******************************************************************************************************************//**
- * @} (end addtogroup RTC_API)
+ * @} (end defgroup RTC_API)
  **********************************************************************************************************************/
 
 /* Common macro for FSP header files. There is also a corresponding FSP_HEADER macro at the top of this file. */

@@ -12,5 +12,4 @@ void BSP_PinConfigSecurityInit();
 
 /* Common macro for FSP header files. There is also a corresponding FSP_HEADER macro at the top of this file. */
 FSP_FOOTER
-
 #endif /* BSP_PIN_CFG_H_ */

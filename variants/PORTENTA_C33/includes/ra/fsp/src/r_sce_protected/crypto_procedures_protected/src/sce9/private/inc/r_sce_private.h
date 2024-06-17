@@ -1,22 +1,8 @@
-/***********************************************************************************************************************
- * Copyright [2020-2022] Renesas Electronics Corporation and/or its affiliates.  All Rights Reserved.
- *
- * This software and documentation are supplied by Renesas Electronics America Inc. and may only be used with products
- * of Renesas Electronics Corp. and its affiliates ("Renesas").  No other uses are authorized.  Renesas products are
- * sold pursuant to Renesas terms and conditions of sale.  Purchasers are solely responsible for the selection and use
- * of Renesas products and Renesas assumes no liability.  No license, express or implied, to any intellectual property
- * right is granted by Renesas. This software is protected under all applicable laws, including copyright laws. Renesas
- * reserves the right to change or discontinue this software and/or this documentation. THE SOFTWARE AND DOCUMENTATION
- * IS DELIVERED TO YOU "AS IS," AND RENESAS MAKES NO REPRESENTATIONS OR WARRANTIES, AND TO THE FULLEST EXTENT
- * PERMISSIBLE UNDER APPLICABLE LAW, DISCLAIMS ALL WARRANTIES, WHETHER EXPLICITLY OR IMPLICITLY, INCLUDING WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT, WITH RESPECT TO THE SOFTWARE OR
- * DOCUMENTATION.  RENESAS SHALL HAVE NO LIABILITY ARISING OUT OF ANY SECURITY VULNERABILITY OR BREACH.  TO THE MAXIMUM
- * EXTENT PERMITTED BY LAW, IN NO EVENT WILL RENESAS BE LIABLE TO YOU IN CONNECTION WITH THE SOFTWARE OR DOCUMENTATION
- * (OR ANY PERSON OR ENTITY CLAIMING RIGHTS DERIVED FROM YOU) FOR ANY LOSS, DAMAGES, OR CLAIMS WHATSOEVER, INCLUDING,
- * WITHOUT LIMITATION, ANY DIRECT, CONSEQUENTIAL, SPECIAL, INDIRECT, PUNITIVE, OR INCIDENTAL DAMAGES; ANY LOST PROFITS,
- * OTHER ECONOMIC DAMAGE, PROPERTY DAMAGE, OR PERSONAL INJURY; AND EVEN IF RENESAS HAS BEEN ADVISED OF THE POSSIBILITY
- * OF SUCH LOSS, DAMAGES, CLAIMS OR COSTS.
- **********************************************************************************************************************/
+/*
+* Copyright (c) 2020 - 2024 Renesas Electronics Corporation and/or its affiliates
+*
+* SPDX-License-Identifier: BSD-3-Clause
+*/
 
 #ifndef R_SCE_PRIVATE_HEADER_FILE
 #define R_SCE_PRIVATE_HEADER_FILE
@@ -780,13 +766,13 @@ void R_SCE_func300(void);
 void R_SCE_func301(void);
 void R_SCE_func302(void);
 void R_SCE_func303(void);
-void R_SCE_func304(void);
+void R_SCE_func304_r1(void);
 void R_SCE_func305(void);
-void R_SCE_func307(void);
+void R_SCE_func307_r1(void);
 void R_SCE_func308(void);
-void R_SCE_func309(void);
+void R_SCE_func309_r1(void);
 void R_SCE_func310(void);
-void R_SCE_func311(void);
+void R_SCE_func311_r1(void);
 void R_SCE_func312(uint32_t ARG1);
 void R_SCE_func313(uint32_t ARG1);
 void R_SCE_func314(uint32_t ARG1);
@@ -800,7 +786,7 @@ void R_SCE_func321(uint32_t ARG1);
 void R_SCE_func322(uint32_t ARG1);
 void R_SCE_func323(void);
 void R_SCE_func324(void);
-void R_SCE_func325(void);
+void R_SCE_func325_r1(void);
 
 uint32_t change_endian_long(uint32_t data);
 

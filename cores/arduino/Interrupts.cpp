@@ -147,7 +147,7 @@ void attachInterruptParam(pin_size_t pinNumber, voidFuncPtrParam func, PinStatus
     if(irq_context != nullptr) {
     
         irq_context->cfg.channel            = ch;
-        irq_context->cfg.pclk_div           = EXTERNAL_IRQ_PCLK_DIV_BY_64;
+        irq_context->cfg.clock_source_div   = EXTERNAL_IRQ_CLOCK_SOURCE_DIV_64;
         irq_context->cfg.filter_enable      = false;
         irq_context->cfg.p_callback         = IrqCallback;
         irq_context->cfg.p_context          = param;
@@ -203,7 +203,7 @@ int attachIrq2Link(uint32_t pinNumber, PinStatus mode) {
 
     if(irq_context != nullptr) {
         irq_context->cfg.channel            = ch;
-        irq_context->cfg.pclk_div           = EXTERNAL_IRQ_PCLK_DIV_BY_64;
+        irq_context->cfg.clock_source_div   = EXTERNAL_IRQ_CLOCK_SOURCE_DIV_64;
         irq_context->cfg.filter_enable      = false;
         irq_context->cfg.p_callback         = IrqCallback;
         irq_context->cfg.p_context          = nullptr;

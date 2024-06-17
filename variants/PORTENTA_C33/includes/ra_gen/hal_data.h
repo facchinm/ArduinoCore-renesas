@@ -77,13 +77,22 @@ extern const spi_flash_cfg_t g_qspi0_cfg;
 #define ETHER_PHY_LSI_TYPE_KIT_COMPONENT ETHER_PHY_LSI_TYPE_DEFAULT
 #endif
 
+#ifndef NULL
+void NULL(ether_phy_instance_ctrl_t *p_instance_ctrl);
+#endif
+
+#ifndef NULL
+bool NULL(ether_phy_instance_ctrl_t *p_instance_ctrl, uint32_t line_speed_duplex);
+#endif
+
 /** ether_phy on ether_phy Instance. */
 extern const ether_phy_instance_t ETHERNET_PHY;
 
 /** Access the Ethernet PHY instance using these structures when calling API functions directly (::p_api is not used). */
 extern ether_phy_instance_ctrl_t ETHERNET_PHY_ctrl;
 extern const ether_phy_cfg_t ETHERNET_PHY_cfg;
-#if (BSP_FEATURE_TZ_HAS_TRUSTZONE == 1) && (BSP_TZ_SECURE_BUILD != 1) && (BSP_TZ_NONSECURE_BUILD != 1)
+extern const ether_phy_extended_cfg_t ETHERNET_PHY_extended_cfg;
+#if (BSP_FEATURE_TZ_HAS_TRUSTZONE == 1) && (BSP_TZ_SECURE_BUILD != 1) && (BSP_TZ_NONSECURE_BUILD != 1) && (BSP_FEATURE_ETHER_SUPPORTS_TZ_SECURE == 0)
 #define ETHER_BUFFER_PLACE_IN_SECTION BSP_PLACE_IN_SECTION(".ns_buffer.eth")
 #else
 #define ETHER_BUFFER_PLACE_IN_SECTION
@@ -171,7 +180,7 @@ extern dmac_instance_ctrl_t g_transfer5_ctrl;
 extern const transfer_cfg_t g_transfer5_cfg;
 
 #ifndef NULL
-void NULL(dmac_callback_args_t *p_args);
+void NULL(transfer_callback_args_t *p_args);
 #endif
 /** lpm Instance */
 extern const lpm_instance_t g_lpm0;
@@ -191,6 +200,12 @@ extern const usb_cfg_t g_basic0_cfg;
 
 #ifndef NULL
 void NULL(void*);
+#endif
+
+#if 0 == BSP_CFG_RTOS
+#ifndef NULL
+void NULL(usb_callback_args_t*);
+#endif
 #endif
 
 #if 2 == BSP_CFG_RTOS

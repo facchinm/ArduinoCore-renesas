@@ -1,21 +1,9 @@
-/**********************************************************************************************************************
- * DISCLAIMER
- * This software is supplied by Renesas Electronics Corporation and is only intended for use with Renesas products. No
- * other uses are authorized. This software is owned by Renesas Electronics Corporation and is protected under all
- * applicable laws, including copyright laws.
- * THIS SOFTWARE IS PROVIDED "AS IS" AND RENESAS MAKES NO WARRANTIES REGARDING
- * THIS SOFTWARE, WHETHER EXPRESS, IMPLIED OR STATUTORY, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. ALL SUCH WARRANTIES ARE EXPRESSLY DISCLAIMED. TO THE MAXIMUM
- * EXTENT PERMITTED NOT PROHIBITED BY LAW, NEITHER RENESAS ELECTRONICS CORPORATION NOR ANY OF ITS AFFILIATED COMPANIES
- * SHALL BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES FOR ANY REASON RELATED TO
- * THIS SOFTWARE, EVEN IF RENESAS OR ITS AFFILIATES HAVE BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * Renesas reserves the right, without notice, to make changes to this software and to discontinue the availability of
- * this software. By using this software, you agree to the additional terms and conditions found by accessing the
- * following link:
- * http://www.renesas.com/disclaimer
- *
- * Copyright (C) 2015-2020 Renesas Electronics Corporation. All rights reserved.
- *********************************************************************************************************************/
+/*
+* Copyright (c) 2020 - 2024 Renesas Electronics Corporation and/or its affiliates
+*
+* SPDX-License-Identifier: BSD-3-Clause
+*/
+
 /**********************************************************************************************************************
  * File Name    : r_sce_if.h
  * Version      : 1.10
@@ -113,6 +101,10 @@
 #define HW_SCE_AES_CCM_COUNTER_BYTE_SIZE      (16U)
 #define HW_SCE_KEYWRAP_AES128                 (0U)
 #define HW_SCE_KEYWRAP_AES256                 (2U)
+#define HW_SCE_AES128XTS_KEY_BYTE_SIZE        (32U)
+#define HW_SCE_AES256XTS_KEY_BYTE_SIZE        (64U)
+#define HW_SCE_AES128XTS_KEY_BIT_SIZE         (256U)
+#define HW_SCE_AES256XTS_KEY_BIT_SIZE         (512U)
 
 /* For TDES operation. */
 #define HW_SCE_TDES_KEY_INDEX_WORD_SIZE       (16U)
@@ -131,6 +123,7 @@
 #define HW_SCE_SHA1_HASH_LENGTH_BYTE_SIZE      (20U)
 #define HW_SCE_SHA256_HASH_LENGTH_BYTE_SIZE    (32U)
 #define HW_SCE_SHA384_HASH_LENGTH_BYTE_SIZE    (48U)
+#define HW_SCE_SHA256_HASH_STATE_BUFFER_SIZE   (8U)
 
 /* For MD5 operation. */
 #define HW_SCE_MD5_HASH_LENGTH_BYTE_SIZE       (16U)
@@ -409,6 +402,31 @@ typedef enum
     SCE_OEM_CMD_NUM
 } sce_oem_cmd_t;
 // added for RA6M4 end
+
+typedef enum e_sce_hash_type
+{
+    SCE_OEM_CMD_HASH_TYPE_SHA1 = 0,
+    SCE_OEM_CMD_HASH_TYPE_SHA224 = 1,
+    SCE_OEM_CMD_HASH_TYPE_SHA256 = 2,
+    SCE_OEM_CMD_HASH_TYPE_SHA512_224 = 3,
+    SCE_OEM_CMD_HASH_TYPE_SHA512_256 = 4,
+    SCE_OEM_CMD_HASH_TYPE_SHA384 = 5,
+    SCE_OEM_CMD_HASH_TYPE_SHA512 = 6
+} sce_hash_type_t;
+
+typedef enum e_sce_hash_cmd
+{
+    SCE_OEM_CMD_HASH_ONESHOT = 0,
+    SCE_OEM_CMD_HASH_INIT_TO_SUSPEND = 1,
+    SCE_OEM_CMD_HASH_RESUME_TO_SUSPEND = 2,
+    SCE_OEM_CMD_HASH_RESUME_TO_FINAL = 3
+} sce_hash_cmd_t;
+
+typedef struct sce_hash_user_ctx
+{
+    uint32_t hash_data_state[HW_SCE_SHA256_HASH_STATE_BUFFER_SIZE];
+    sce_hash_cmd_t operation_cmd;
+}sce_hash_user_ctx_t;
 
 typedef enum e_sce_oem_key_type
 {

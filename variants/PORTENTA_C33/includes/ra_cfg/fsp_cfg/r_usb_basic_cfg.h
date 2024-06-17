@@ -24,7 +24,7 @@ extern const uint16_t NULL[];
 #if (RA_NOT_DEFINED != RA_NOT_DEFINED)
             #define USB_CFG_HPRN_USE
             #endif
-#if (1 != RA_NOT_DEFINED)
+#if ((1 != RA_NOT_DEFINED) || (RA_NOT_DEFINED != RA_NOT_DEFINED))
 #define USB_CFG_PCDC_USE
 #endif
 #if (RA_NOT_DEFINED != RA_NOT_DEFINED)
@@ -32,6 +32,9 @@ extern const uint16_t NULL[];
             #endif
 #if (RA_NOT_DEFINED != RA_NOT_DEFINED)
             #define USB_CFG_PMSC_USE
+            #endif
+#if (RA_NOT_DEFINED != RA_NOT_DEFINED)
+            #define USB_CFG_PPRN_USE
             #endif
 #if (RA_NOT_DEFINED != RA_NOT_DEFINED)
             #define USB_CFG_PVND_USE
@@ -49,6 +52,9 @@ extern const uint16_t NULL[];
             #define USB_CFG_HPRN_USE
             #endif
 #if (RA_NOT_DEFINED != RA_NOT_DEFINED)
+            #define USB_CFG_HUVC_USE
+            #endif
+#if (RA_NOT_DEFINED != RA_NOT_DEFINED)
             #define USB_CFG_PCDC_USE
             #endif
 #if (RA_NOT_DEFINED != RA_NOT_DEFINED)
@@ -63,16 +69,19 @@ extern const uint16_t NULL[];
 #if (RA_NOT_DEFINED != RA_NOT_DEFINED)
             #define USB_CFG_PAUD_USE
             #endif
+#if (RA_NOT_DEFINED != RA_NOT_DEFINED)
+            #define USB_CFG_DFU_USE
+            #endif
 #if ((RA_NOT_DEFINED != RA_NOT_DEFINED) || (RA_NOT_DEFINED != RA_NOT_DEFINED) || (RA_NOT_DEFINED != RA_NOT_DEFINED))
             #define USB_CFG_OTG_USE
             #endif
-#if (defined(USB_CFG_HCDC_USE) || defined(USB_CFG_HPRN_USE) || defined(USB_CFG_HMSC_USE) || defined(USB_CFG_HHID_USE) || defined(USB_CFG_HVND_USE))
+#if (defined(USB_CFG_HCDC_USE) || defined(USB_CFG_HPRN_USE) || defined(USB_CFG_HMSC_USE) || defined(USB_CFG_HHID_USE) || defined(USB_CFG_HVND_USE) || defined(USB_CFG_HUVC_USE))
             #define USB_CFG_HOST_MODE 1
             #else
 #define USB_CFG_HOST_MODE 0
 #endif
 
-#if (defined(USB_CFG_PCDC_USE) || defined(USB_CFG_PPRN_USE) || defined(USB_CFG_PMSC_USE) || defined(USB_CFG_PHID_USE) || defined(USB_CFG_PVND_USE) || defined(USB_CFG_PAUD_USE))
+#if (defined(USB_CFG_PCDC_USE) || defined(USB_CFG_PPRN_USE) || defined(USB_CFG_PMSC_USE) || defined(USB_CFG_PHID_USE) || defined(USB_CFG_PVND_USE) || defined(USB_CFG_PAUD_USE) || defined(USB_CFG_DFU_USE))
 #define USB_CFG_PERI_MODE 2
 #else
             #define USB_CFG_PERI_MODE 0
