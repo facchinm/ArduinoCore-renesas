@@ -74,7 +74,9 @@ static elc_event_t fsp_irq_to_elc_event(int channel)
         ELC_EVENT_ICU_IRQ10,
         ELC_EVENT_ICU_IRQ11,
         ELC_EVENT_ICU_IRQ12,
+#ifdef ELC_EVENT_ICU_IRQ13
         ELC_EVENT_ICU_IRQ13,
+#endif
         ELC_EVENT_ICU_IRQ14,
         ELC_EVENT_ICU_IRQ15,
     };
