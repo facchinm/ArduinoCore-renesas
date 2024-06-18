@@ -132,18 +132,6 @@ bool R7FA6M5_CAN::begin(uint32_t const can_bitrate)
   };
   init_ok &= IRQManager::getInstance().addPeripheral(IRQ_CANFD, &irq_req);
 
-  /* There is only one global error channel shared between both CAN0 and CAN1
-   * peripheral. If you are using e2Studio the error channel is configured via
-   * a project-wide define, however this is an issue for as as we do not know
-   * if both CAN instances are actually going to be used by the end-user. It may
-   * happen that only CAN1.begin() is called, if in this scenario CAN0 is configured
-   * as the source of the global error channel a hard-fault occurs as soon as
-   * an error occurs (this is a design-issue with the FSP layer). The line below
-   * ensures that there's always a valid error channel and that no hard-fault
-   * can occur.
-   */
-  _canfd_extended_cfg.global_err_channel = cfg_channel;
-
   /* Calculate the CAN bitrate based on the value of this functions parameter.
    */
   static uint32_t const F_CAN_CLK_Hz = 24*1000*1000UL;

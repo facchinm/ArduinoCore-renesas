@@ -450,9 +450,10 @@ const rtc_error_adjustment_cfg_t rtc_err_cfg = {
     .adjustment_period = RTC_ERROR_ADJUSTMENT_PERIOD_10_SECOND,
     .adjustment_type = RTC_ERROR_ADJUSTMENT_NONE,
     .adjustment_value = 0, };
+
 rtc_cfg_t rtc_cfg  = { 
     .clock_source = RTC_CLOCK_SOURCE,
-    .freq_compare_value_loco = 255, 
+    .freq_compare_value = 255,
     .p_err_cfg = &rtc_err_cfg, 
     .alarm_ipl = (12), 
     .alarm_irq = FSP_INVALID_VECTOR,
