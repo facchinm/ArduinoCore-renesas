@@ -17,7 +17,7 @@ void startAgt(void);
 
 extern uint32_t __ROM_Start;
 extern const fsp_vector_t __VECTOR_TABLE[];
-extern const fsp_vector_t g_vector_table[];
+extern const fsp_vector_t g_vector_table[BSP_ICU_VECTOR_MAX_ENTRIES];
 
 
 #if FSP_PRIV_TZ_USE_SECURE_REGS
@@ -89,8 +89,6 @@ void arduino_main(void)
    for (_i=0; _i<BSP_ICU_VECTOR_MAX_ENTRIES; _i++) {
       *(irq_vector_table + _i +BSP_CORTEX_VECTOR_TABLE_ENTRIES) = (uint32_t)g_vector_table[_i];
    }
-
-   
 
    SCB->VTOR = (uint32_t)irq_vector_table;
 

@@ -303,3 +303,52 @@ muxto.upload.maximum_size=262144
 muxto.upload.maximum_data_size=32768
 
 ##############################################################
+
+ek_ra8d1.name=EK-RA8D1
+ek_ra8d1.build.core=arduino
+ek_ra8d1.build.crossprefix=arm-none-eabi-
+#ek_ra8d1.build.compiler_path={runtime.tools.gcc-arm-none-eabi-12.2.rel1.path}/bin/
+ek_ra8d1.build.compiler_path=/bin/
+
+ek_ra8d1.build.variant=EK_RA8D1
+ek_ra8d1.build.mcu=cortex-m85+nopacbti
+ek_ra8d1.build.architecture=cortex-m85+nopacbti
+ek_ra8d1.build.fpu=
+ek_ra8d1.build.float-abi=-mfloat-abi=hard
+
+ek_ra8d1.build.board=EK_RA8D1
+ek_ra8d1.build.defines=-DF_CPU=480000000
+ek_ra8d1.vid.0=0x2341
+ek_ra8d1.pid.0=0x0077
+ek_ra8d1.vid.1=0x2341
+ek_ra8d1.pid.1=0x0177
+ek_ra8d1.upload_port.0.vid=0x2341
+ek_ra8d1.upload_port.0.pid=0x0077
+ek_ra8d1.upload_port.1.vid=0x2341
+ek_ra8d1.upload_port.1.pid=0x0177
+
+ek_ra8d1.compiler.fsp.defines={build.variant.path}/defines.txt
+ek_ra8d1.compiler.fsp.ldflags={build.variant.path}/ldflags.txt
+ek_ra8d1.compiler.fsp.cflags=-mthumb -D_RA_CORE=CM85 -D_RENESAS_RA_
+ek_ra8d1.compiler.fsp.cxxflags=-mthumb -D_RA_CORE=CM85 -D_RENESAS_RA_
+ek_ra8d1.compiler.tinyusb.cflags=-DCFG_TUSB_MCU=OPT_MCU_RAXXX
+ek_ra8d1.compiler.tinyusb.cxxflags=-DCFG_TUSB_MCU=OPT_MCU_RAXXX
+ek_ra8d1.compiler.fsp.includes={build.variant.path}/includes.txt
+ek_ra8d1.compiler.fsp.extra_ldflags=--specs=nano.specs -lstdc++ -lsupc++ -lm -lc -lgcc -lnosys
+ek_ra8d1.compiler.fsp="{build.variant.path}/libs/libfsp.a"
+
+ek_ra8d1.upload.tool=dfu-util
+ek_ra8d1.upload.tool.default=dfu-util
+ek_ra8d1.upload.protocol=
+ek_ra8d1.upload.transport=
+ek_ra8d1.upload.vid=0x2341
+ek_ra8d1.upload.pid=0x0177
+ek_ra8d1.upload.address=0x00010000
+ek_ra8d1.upload.interface=0
+ek_ra8d1.upload.use_1200bps_touch=false
+ek_ra8d1.upload.wait_for_upload_port=false
+ek_ra8d1.upload.native_usb=true
+ek_ra8d1.upload.maximum_size=262144
+ek_ra8d1.upload.maximum_data_size=32768
+
+##############################################################

@@ -32,7 +32,10 @@
 #ifndef __ARDUINO_UART_IMPLEMENTATION__
 #define __ARDUINO_UART_IMPLEMENTATION__
 
+#if (BSP_FEATURE_SCI_VERSION == 1)
 #include "r_sci_uart.h"
+#endif
+
 #include "r_uart_api.h"
 
 #include "SafeRingBuffer.h"
@@ -80,25 +83,22 @@ class UART : public arduino::HardwareSerial {
 
     volatile bool tx_done;
 
+#if (BSP_FEATURE_SCI_VERSION == 1)
     sci_uart_instance_ctrl_t  uart_ctrl;
     uart_cfg_t                uart_cfg;
     baud_setting_t            uart_baud;
     sci_uart_extended_cfg_t   uart_cfg_extend;
 
     uart_ctrl_t*              get_ctrl() { return &uart_ctrl; }
-    
+
     bool                      setUpUartIrqs(uart_cfg_t &cfg);
+#else
+
+#endif
 
   protected:
     bool                      init_ok;
 };
-
-    
-   
-    
-    
-    
-
 
 extern UART _UART1_;
 extern UART _UART2_;

@@ -1,0 +1,13 @@
+-iwithprefixbefore/variants/EK_RA8D1/includes/ra8/src
+-iwithprefixbefore/variants/EK_RA8D1/includes/ra/fsp/inc
+-iwithprefixbefore/variants/EK_RA8D1/includes/ra/fsp/inc/api
+-iwithprefixbefore/variants/EK_RA8D1/includes/ra/fsp/inc/instances
+-iwithprefixbefore/variants/EK_RA8D1/includes/ra/arm/CMSIS_5/CMSIS/Core/Include
+-iwithprefixbefore/variants/EK_RA8D1/includes/ra_gen
+-iwithprefixbefore/variants/EK_RA8D1/includes/ra_cfg/fsp_cfg/bsp
+-iwithprefixbefore/variants/EK_RA8D1/includes/ra_cfg/fsp_cfg
+-iwithprefixbefore/variants/EK_RA8D1/includes/ra/arm/CMSIS_5/CMSIS/DSP/PrivateInclude
+-iwithprefixbefore/variants/EK_RA8D1/includes/ra/arm/CMSIS_5/CMSIS/DSP/Include
+-iwithprefixbefore/variants/EK_RA8D1/includes/ra/arm/CMSIS-NN/Include
+-iwithprefixbefore/variants/EK_RA8D1/includes/ra/tes/dave2d/inc
+-iwithprefixbefore/variants/EK_RA8D1/includes/ra/fsp/src/r_usb_basic/src/driver/inc

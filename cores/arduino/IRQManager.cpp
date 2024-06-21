@@ -509,6 +509,7 @@ bool IRQManager::addPeripheral(Peripheral_t p, void *cfg) {
     /* **********************************************************************
                                       UART
        ********************************************************************** */
+#if SERIAL_HOWMANY > 0
     else if(p == IRQ_SCI_UART && cfg != NULL) {
         uart_cfg_t *p_cfg = (uart_cfg_t *)cfg;
         
@@ -550,6 +551,7 @@ bool IRQManager::addPeripheral(Peripheral_t p, void *cfg) {
         R_BSP_IrqEnable (p_cfg->rxi_irq);
         R_BSP_IrqEnable (p_cfg->eri_irq);
     }
+#endif
     /* **********************************************************************
                                       RTC
        ********************************************************************** */

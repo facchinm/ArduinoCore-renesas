@@ -60,8 +60,8 @@ unsigned long micros() {
 	NVIC_DisableIRQ(cfg->cycle_end_irq);
 	uint32_t ms = agt_time_ms;
 	// read from the R_AGT0 registers directly for performance reasons
-	uint32_t const down_counts = R_AGT0->AGT32.AGT; // get the counter value
-	if (R_AGT0->AGT32.CTRL.AGTCR_b.TUNDF && (down_counts > (cfg->period_counts / 2))) {
+	uint32_t const down_counts = R_AGT0->AGT16.AGT; // get the counter value
+	if (R_AGT0->AGT16.CTRL.AGTCR_b.TUNDF && (down_counts > (cfg->period_counts / 2))) {
 		// if the TUNDF (underflow) bit is set, the counter wrapped around 
 		// just before down_counts was read and agt_time_ms was not yet updated
 		++ms;

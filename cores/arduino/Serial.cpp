@@ -24,6 +24,7 @@
 #include "Serial.h"
 #include "IRQManager.h"
 
+#if (BSP_FEATURE_SCI_VERSION == 1)
 
 #ifdef Serial
 #undef Serial
@@ -336,3 +337,5 @@ size_t UART::write_raw(uint8_t* c, size_t len) {
   }
   return len;
 }
+
+#endif

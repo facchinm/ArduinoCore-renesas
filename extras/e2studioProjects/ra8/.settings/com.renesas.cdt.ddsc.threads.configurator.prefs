@@ -1,0 +1,16 @@
+collapse/module.arm.cmsis5.dsp.182859709=false
+collapse/module.arm.cmsis5.nn.805299294=false
+collapse/module.driver.basic_on_usb.1027144648=false
+collapse/module.driver.display_on_glcdc.831641833=false
+collapse/module.driver.drw.179574846=false
+collapse/module.driver.ether_on_ether.369170505=false
+collapse/module.driver.i2c_on_iic_master.2117638873=false
+collapse/module.driver.i2c_on_iic_slave.1013107341=false
+collapse/module.driver.i2c_on_sci_b_i2c.224298636=false
+collapse/module.driver.i2s_on_ssi.373512013=false
+collapse/module.driver.pcdc_on_usb.782679282=false
+collapse/module.driver.sdmmc_on_sdmmc.906282808=false
+collapse/module.driver.spi_on_sci_b_spi.1316116417=false
+collapse/module.driver.spi_on_spi_b.8596032=false
+collapse/module.driver.uart_on_sci_b_uart.442688675=false
+eclipse.preferences.version=1
